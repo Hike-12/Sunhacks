@@ -39,24 +39,13 @@ const CreateCourse = ({ setActiveTab }) => {
     description: "",
     category: "",
     language: "English",
-    isPrivate: false,
-    password: "",
-    tags: [],
     estimatedTime: 60,
   });
   const [pdfFile, setPdfFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const [tagInput, setTagInput] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const navigate = useNavigate();
-
-  // Sidebar nav items (consistent with dashboard)
-  const navItems = [
-    { key: "overview", label: "Overview" },
-    { key: "courses", label: "Courses" },
-    { key: "analytics", label: "Analytics" },
-  ];
 
   // PDF upload handler
   const handleFileChange = (e) => {
@@ -72,23 +61,6 @@ const CreateCourse = ({ setActiveTab }) => {
       }
       setPdfFile(file);
     }
-  };
-
-  // Tag add/remove
-  const addTag = () => {
-    if (tagInput.trim() && !courseData.tags.includes(tagInput.trim())) {
-      setCourseData({
-        ...courseData,
-        tags: [...courseData.tags, tagInput.trim()],
-      });
-      setTagInput("");
-    }
-  };
-  const removeTag = (tagToRemove) => {
-    setCourseData({
-      ...courseData,
-      tags: courseData.tags.filter((tag) => tag !== tagToRemove),
-    });
   };
 
   // Stepper navigation
@@ -107,9 +79,6 @@ const CreateCourse = ({ setActiveTab }) => {
         toast.error("Please upload a PDF file");
         return;
       }
-    } else if (step === 3 && courseData.isPrivate && !courseData.password) {
-      toast.error("Password is required for private courses");
-      return;
     }
     setStep(step + 1);
   };
@@ -124,10 +93,6 @@ const CreateCourse = ({ setActiveTab }) => {
       formData.append("description", courseData.description);
       formData.append("category", courseData.category);
       formData.append("language", courseData.language);
-      formData.append("isPrivate", courseData.isPrivate);
-      if (courseData.isPrivate)
-        formData.append("password", courseData.password);
-      formData.append("tags", JSON.stringify(courseData.tags));
       formData.append("pdf", pdfFile);
       formData.append("estimatedTime", courseData.estimatedTime);
 
@@ -301,69 +266,6 @@ const CreateCourse = ({ setActiveTab }) => {
                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                 }`}
               >
-                Tags (Optional)
-              </label>
-              <div className="flex space-x-2 mb-3">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), addTag())
-                  }
-                  className={`flex-1 px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none
-                    ${
-                      isDark
-                        ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                        : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                    }`}
-                  placeholder="Add relevant tags"
-                />
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors
-                    ${
-                      isDark
-                        ? "bg-[#23234a] text-[#a78bfa] hover:bg-[#18182b]"
-                        : "bg-[#ece9ff] text-[#7c3aed] hover:bg-[#e0e7ff]"
-                    }`}
-                >
-                  Add
-                </button>
-              </div>
-              {courseData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {courseData.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className={`px-3 py-1 rounded-full text-sm flex items-center space-x-2
-                        ${
-                          isDark
-                            ? "bg-[#23234a] text-[#a78bfa]"
-                            : "bg-[#ece9ff] text-[#7c3aed]"
-                        }`}
-                    >
-                      <span>{tag}</span>
-                      <button
-                        onClick={() => removeTag(tag)}
-                        className={`ml-2 hover:text-red-400
-                          ${isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"}
-                        `}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div>
-              <label
-                className={`block mb-2 text-sm font-medium ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
                 Estimated Time (minutes) *
               </label>
               <input
@@ -507,102 +409,6 @@ const CreateCourse = ({ setActiveTab }) => {
                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                 }`}
               >
-                Privacy & Access Settings
-              </h3>
-              <p className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                Configure who can access your course
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  id="private-course"
-                  checked={courseData.isPrivate}
-                  onChange={(e) =>
-                    setCourseData({
-                      ...courseData,
-                      isPrivate: e.target.checked,
-                      password: "",
-                    })
-                  }
-                  className={`w-5 h-5 rounded focus:ring-blue-500 mt-0.5
-                    ${
-                      isDark
-                        ? "text-blue-400 bg-[#080808] border-[#23234a]"
-                        : "text-blue-600 bg-[#f8f8f8] border-[#e5e7eb]"
-                    }`}
-                />
-                <div>
-                  <label
-                    htmlFor="private-course"
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    Make this course private
-                  </label>
-                  <p
-                    className={`text-sm mt-1 ${
-                      isDark ? "text-[#aaa]" : "text-[#222]"
-                    }`}
-                  >
-                    Private courses require a password for students to enroll
-                    and generate a unique course code.
-                  </p>
-                </div>
-              </div>
-              {courseData.isPrivate && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="ml-8 space-y-3"
-                >
-                  <div>
-                    <label
-                      className={`block mb-2 text-sm font-medium ${
-                        isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                      }`}
-                    >
-                      Course Password *
-                    </label>
-                    <input
-                      type="password"
-                      value={courseData.password}
-                      onChange={(e) =>
-                        setCourseData({
-                          ...courseData,
-                          password: e.target.value,
-                        })
-                      }
-                      className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200
-                        ${
-                          isDark
-                            ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                            : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                        }`}
-                      placeholder="Enter a secure password"
-                      required
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-        );
-      case 4:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div>
-              <h3
-                className={`text-2xl font-semibold mb-2 ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
                 Review & Submit
               </h3>
               <p className={isDark ? "text-[#aaa]" : "text-[#222]"}>
@@ -656,18 +462,6 @@ const CreateCourse = ({ setActiveTab }) => {
                 </div>
                 <div>
                   <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Access:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.isPrivate ? "Private" : "Public"}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
                     File:
                   </span>
                   <p
@@ -676,20 +470,6 @@ const CreateCourse = ({ setActiveTab }) => {
                     }`}
                   >
                     {pdfFile?.name || "No file selected"}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Tags:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.tags.length > 0
-                      ? courseData.tags.join(", ")
-                      : "None"}
                   </p>
                 </div>
                 <div>
@@ -729,7 +509,7 @@ const CreateCourse = ({ setActiveTab }) => {
   // Stepper progress bar
   const renderStepper = () => (
     <div className="flex items-center space-x-2 mb-8">
-      {[1, 2, 3, 4].map((num) => (
+      {[1, 2, 3].map((num) => (
         <div key={num} className="flex items-center flex-1">
           <div
             className={`h-2 rounded-full flex-1 ${
@@ -740,7 +520,7 @@ const CreateCourse = ({ setActiveTab }) => {
                 : "bg-[#e5e7eb]"
             }`}
           />
-          {num < 4 && <div className="w-2" />}
+          {num < 3 && <div className="w-2" />}
         </div>
       ))}
     </div>
@@ -757,7 +537,7 @@ const CreateCourse = ({ setActiveTab }) => {
           Create New Course
         </h1>
         <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-          Step {step} of 4
+          Step {step} of 3
         </span>
       </div>
       {renderStepper()}
@@ -790,7 +570,7 @@ const CreateCourse = ({ setActiveTab }) => {
           >
             Previous
           </motion.button>
-          {step < 4 ? (
+          {step < 3 ? (
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
