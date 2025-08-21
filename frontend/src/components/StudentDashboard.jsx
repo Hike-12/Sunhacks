@@ -1,26 +1,21 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
   FaBars,
   FaBook,
   FaChartBar,
   FaSignOutAlt,
   FaHome,
-  FaMoon,
-  FaSun,
   FaLanguage,
-  FaChartLine
+  FaChartLine,
 } from "react-icons/fa";
-import WikipediaShortsLauncher from "./TikTok";
-import PDFTranslator from "./translatePart/PDFTranslator";
+import { ThemeToggle } from "./landing/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
-import { TranslatedText } from "./TranslatedText";
-import AchievementCard from "./AchievementCard";
-import AllAchievements from "./AllAchievements";
 import StudentStats from "./StudentStats";
+import MyAchievements from "./MyAchievements";
+import PDFTranslator from "./translatePart/PDFTranslator";
 
 // Maps frontend codes to backend full names
 const BACKEND_LANGUAGE_MAP = {
@@ -55,7 +50,7 @@ const navItems = [
   { key: "dashboard", label: "Dashboard", icon: <FaHome /> },
   { key: "courses", label: "My Courses", icon: <FaBook /> },
   { key: "stats", label: "Stats", icon: <FaChartBar /> },
-{ key: "achievements", label: "Achievements", icon: <FaChartLine /> },
+  { key: "achievements", label: "Achievements", icon: <FaChartLine /> },
   { key: "translator", label: "Translator", icon: <FaLanguage /> },
 ];
 
@@ -287,14 +282,20 @@ const StudentDashboard = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#101010]">
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          isDark ? "bg-[#080808]" : "bg-[#f8f8f8]"
+        }`}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center space-x-2 text-[#080808] dark:text-[#f8f8f8]"
+          className="flex items-center space-x-3"
         >
-          <div className="animate-spin h-6 w-6 border-2 border-[#080808] dark:border-[#f8f8f8] border-t-transparent rounded-full"></div>
-          <span>Loading...</span>
+          <div className="animate-spin h-6 w-6 border-2 border-indigo-700 border-t-transparent rounded-full"></div>
+          <span className={`font-medium ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+            Loading dashboard...
+          </span>
         </motion.div>
       </div>
     );
@@ -302,230 +303,242 @@ const StudentDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`rounded-xl p-6 ${
+                isDark ? "bg-[#101010] border border-[#222]" : "bg-white border border-gray-200"
+              }`}
+            >
+              <h2 className={`text-2xl font-bold mb-6 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                My Enrolled Courses
+              </h2>
+              {enrolledCourses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {enrolledCourses.map((course) => (
+                    <motion.div
+                      key={course._id}
+                      whileHover={{ scale: 1.02 }}
+                      className={`rounded-xl p-6 cursor-pointer transition-all ${
+                        isDark
+                          ? "bg-[#181818] border border-[#333] hover:border-[#a78bfa]"
+                          : "bg-gray-50 border border-gray-100 hover:border-[#7c3aed]"
+                      }`}
+                      onClick={() => navigate(`/course/${course._id}`)}
+                    >
+                      <h3 className={`font-semibold mb-2 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                        {course.title}
+                      </h3>
+                      <p className={`text-sm mb-4 ${isDark ? "text-[#aaa]" : "text-[#666]"}`}>
+                        {course.description}
+                      </p>
+                      <div className="flex justify-between items-center">
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          isDark ? "bg-[#222] text-[#aaa]" : "bg-gray-200 text-[#666]"
+                        }`}>
+                          {course.category}
+                        </span>
+                        <span className={`text-sm ${isDark ? "text-[#f8f8f8]/60" : "text-[#080808]/60"}`}>
+                          Progress: {Math.round(course.progress || 0)}%
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <h4 className={`text-xl font-semibold mb-2 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                    No courses yet
+                  </h4>
+                  <p className={`${isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"}`}>
+                    Start learning by enrolling in a course!
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        );
+
       case "courses":
         return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              My Enrolled Courses
-            </h2>
-            {enrolledCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {enrolledCourses.map((course, index) => (
-                  <motion.div
-                    key={course._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    whileHover={{ y: -5, scale: 1.02 }}
-                    className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6 cursor-pointer"
-                    onClick={() => navigate(`/course/${course._id}`)}
-                  >
-                    <div className="text-3xl mb-4">{course.emoji || "📖"}</div>
-                    <h4 className="text-xl font-semibold mb-2 text-[#080808] dark:text-[#f8f8f8]">
-                      {course.title}
-                    </h4>
-                    <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70 mb-4 line-clamp-2">
-                      {course.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
-                        Progress: {Math.round(course.progress || 0)}%
-                      </span>
-                      <span className="text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
-                        {course.language}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-100 dark:bg-[#222] rounded-full h-2 mt-3">
-                      <div
-                        className="bg-[#7c3aed] dark:bg-[#a78bfa] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${course.progress || 0}%` }}
-                      ></div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl">
-                <div className="text-6xl mb-4">📚</div>
-                <h4 className="text-xl font-semibold mb-2 text-[#080808] dark:text-[#f8f8f8]">
-                  No courses yet
-                </h4>
-                <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70">
-                  Start learning by enrolling in a course!
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      case "stats":
-        return (
-          <StudentStats/>
-        );
-      case "translator":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              PDF Translator
-            </h2>
-            <div className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6">
-              <p className="text-[#080808] dark:text-[#f8f8f8] mb-4">
-                This feature allows you to translate PDF documents to your preferred language.
-              </p>
-              <PDFTranslator />
-            </div>
-          </div>
-        );
-        case "achievements":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              Achievements
-            </h2>
-            <div className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6">
-              <AllAchievements/>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#080808] dark:text-[#f8f8f8]">
+          <div className="space-y-6">
+            {/* Header with actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4"
+            >
+              <h2 className={`text-2xl font-bold ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
                 Available Courses
               </h2>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition"
-                  title={
-                    isDark ? 
-                    "Switch to light mode" : 
-                    "Switch to dark mode"
-                  }
-                >
-                  {isDark ? (
-                    <FaSun className="text-yellow-400" />
-                  ) : (
-                    <FaMoon className="text-gray-600" />
-                  )}
-                </button>
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowPrivateCourseModal(true)}
-                  className="px-4 py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium"
+                  className={`px-4 py-2 rounded-lg font-medium ${
+                    isDark ? "bg-[#a78bfa] text-white" : "bg-[#7c3aed] text-white"
+                  }`}
                 >
                   Join Private Course
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="mb-6">
+            {/* Search */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className={`rounded-xl p-6 ${
+                isDark ? "bg-[#101010] border border-[#222]" : "bg-white border border-gray-200"
+              }`}
+            >
               <input
                 type="text"
-                placeholder={"Search courses..."}
+                placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] text-[#080808] dark:text-[#f8f8f8] focus:ring-2 focus:ring-[#7c3aed] dark:focus:ring-[#a78bfa] focus:outline-none"
+                className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none ${
+                  isDark
+                    ? "bg-[#181818] border-[#222] text-[#f8f8f8] focus:ring-[#a78bfa]"
+                    : "bg-white border-gray-200 text-[#080808] focus:ring-[#7c3aed]"
+                }`}
               />
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCourses.map((course, index) => {
-                const isEnrolled = enrolledCourses.some(
-                  (enrolled) => enrolled._id === course._id
-                );
-
-                return (
+            {/* Courses Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((course) => (
                   <motion.div
                     key={course._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    whileHover={{ y: -5, scale: 1.02 }}
-                    className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6"
+                    whileHover={{ scale: 1.02 }}
+                    className={`rounded-xl p-6 transition-all ${
+                      isDark
+                        ? "bg-[#101010] border border-[#222] hover:border-[#a78bfa]"
+                        : "bg-white border border-gray-200 hover:border-[#7c3aed]"
+                    }`}
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="text-3xl">{course.emoji || "📖"}</div>
-                      <span className="px-2 py-1 bg-[#7c3aed]/10 dark:bg-[#a78bfa]/10 text-[#7c3aed] dark:text-[#a78bfa] rounded text-xs">
-                        {course.category}
-                      </span>
-                    </div>
-
-                    <h4 className="text-xl font-semibold mb-2 line-clamp-1 text-[#080808] dark:text-[#f8f8f8]">
+                    <h3 className={`font-semibold mb-2 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
                       {course.title}
-                    </h4>
-
-                    <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70 mb-4 line-clamp-2">
+                    </h3>
+                    <p className={`text-sm mb-4 line-clamp-2 ${isDark ? "text-[#aaa]" : "text-[#666]"}`}>
                       {course.description}
                     </p>
-
-                    <div className="flex justify-between items-center mb-4 text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
-                      <span>By: {course.teacher}</span>
-                      <span>{course.language}</span>
+                    <div className="flex justify-between items-center mb-4">
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        isDark ? "bg-[#222] text-[#aaa]" : "bg-gray-200 text-[#666]"
+                      }`}>
+                        {course.category}
+                      </span>
+                      <span className={`text-xs ${isDark ? "text-[#aaa]" : "text-[#666]"}`}>
+                        By: {course.teacher}
+                      </span>
                     </div>
-
-                    {isEnrolled ? (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    {enrolledCourses.some((enrolled) => enrolled._id === course._id) ? (
+                      <button
                         onClick={() => navigate(`/course/${course._id}`)}
-                        className="w-full py-2 bg-[#7c3aed]/10 dark:bg-[#a78bfa]/10 text-[#7c3aed] dark:text-[#a78bfa] rounded-lg font-medium"
+                        className={`w-full py-2 rounded-lg font-medium ${
+                          isDark
+                            ? "bg-[#181818] border border-[#333] text-[#f8f8f8]"
+                            : "bg-gray-100 border border-gray-200 text-[#080808]"
+                        }`}
                       >
                         Continue Learning →
-                      </motion.button>
+                      </button>
                     ) : (
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handleEnrollCourse(course._id)}
                         disabled={loading}
-                        className="w-full py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium disabled:opacity-50"
+                        className={`w-full py-2 rounded-lg font-medium disabled:opacity-50 ${
+                          isDark ? "bg-[#a78bfa] text-white" : "bg-[#7c3aed] text-white"
+                        }`}
                       >
                         {loading ? "Enrolling..." : "Enroll Now"}
                       </motion.button>
                     )}
                   </motion.div>
-                );
-              })}
-            </div>
-
-            {filteredCourses.length === 0 && searchTerm && (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🔍</div>
-                <h4 className="text-xl font-semibold mb-2 text-[#080808] dark:text-[#f8f8f8]">
-                  No courses found
-                </h4>
-                <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70">
-                  Try adjusting your search terms
-                </p>
-              </div>
-            )}
+                ))
+              ) : (
+                <div className="col-span-full text-center py-12">
+                  <h4 className={`text-xl font-semibold mb-2 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                    No courses found
+                  </h4>
+                  <p className={`${isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"}`}>
+                    Try adjusting your search terms
+                  </p>
+                </div>
+              )}
+            </motion.div>
           </div>
         );
+
+      case "stats":
+        return <StudentStats />;
+
+      case "achievements":
+        return <MyAchievements />;
+
+      case "translator":
+        return (
+          <div className="space-y-6">
+            <h2 className={`text-2xl font-bold mb-6 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+              PDF Translator
+            </h2>
+            <div className={`rounded-xl p-6 ${
+              isDark ? "bg-[#101010] border border-[#222]" : "bg-white border border-gray-200"
+            }`}>
+              <p className={`mb-4 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                This feature allows you to translate PDF documents to your preferred language.
+              </p>
+              <PDFTranslator />
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
   return (
-    <div
-      className={`flex h-screen ${
-        isDark ? "dark" : ""
-      } bg-white dark:bg-[#101010] overflow-hidden`}
-    >
+    <div className={`min-h-screen flex ${isDark ? "bg-[#080808]" : "bg-[#f8f8f8]"}`}>
       {/* Sidebar */}
       <aside
-        className={`sticky top-0 flex flex-col justify-between h-screen bg-white dark:bg-[#101010] border-r border-gray-200 dark:border-[#222] transition-all duration-200
-        ${collapsed ? "w-16" : "w-56"} z-30`}
+        className={`sticky top-0 flex flex-col justify-between h-screen border-r transition-all duration-200
+          ${collapsed ? "w-16" : "w-56"} z-30
+          ${isDark ? "bg-[#101010] border-[#222]" : "bg-white border-gray-200"}
+        `}
       >
         <div>
-          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-[#222]">
+          <div
+            className={`flex items-center justify-between px-4 py-4 border-b ${
+              isDark ? "border-[#222]" : "border-gray-100"
+            }`}
+          >
             {!collapsed && (
-              <h1 className="font-bold text-[#080808] dark:text-[#f8f8f8]">
+              <h1 className={`font-bold ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
                 StudyGenie
               </h1>
             )}
             <button
-              className="p-2 rounded hover:bg-gray-100 dark:hover:bg-[#181818] transition text-[#080808] dark:text-[#f8f8f8]"
+              className={`ml-2 p-2 rounded transition ${
+                isDark
+                  ? "hover:bg-[#181818] text-[#f8f8f8]"
+                  : "hover:bg-gray-100 text-[#080808]"
+              }`}
               onClick={() => setCollapsed((c) => !c)}
             >
               <FaBars />
@@ -536,15 +549,20 @@ const StudentDashboard = () => {
               <button
                 key={item.key}
                 className={`
-                  group flex items-center gap-4 px-3 py-2 text-left rounded-lg transition
-                  relative
+                  group flex items-center gap-4 px-3 py-2 text-left rounded-lg transition relative
                   ${
                     activeTab === item.key
-                      ? "mx-2 my-1 bg-[#ece9ff] dark:bg-[#18182b] font-semibold border-l-4 border-[#7c3aed] dark:border-[#a78bfa] shadow-sm"
-                      : "hover:bg-gray-100 dark:hover:bg-[#181818]"
+                      ? `${
+                          isDark
+                            ? "mx-2 my-1 bg-[#18182b] font-semibold border-l-4 border-[#a78bfa] shadow-sm"
+                            : "mx-2 my-1 bg-[#ece9ff] font-semibold border-l-4 border-[#7c3aed] shadow-sm"
+                        }`
+                      : isDark
+                      ? "hover:bg-[#181818]"
+                      : "hover:bg-gray-100"
                   }
                   ${collapsed ? "justify-center px-0" : ""}
-                  text-[#080808] dark:text-[#f8f8f8]
+                  ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}
                 `}
                 onClick={() => setActiveTab(item.key)}
                 title={item.label}
@@ -553,11 +571,11 @@ const StudentDashboard = () => {
                   marginRight: activeTab === item.key && !collapsed ? "2px" : 0,
                 }}
               >
-                <span className="text-lg text-[#080808] dark:text-[#f8f8f8]">
+                <span className={`text-lg ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
                   {item.icon}
                 </span>
                 {!collapsed && (
-                  <span className="sidebar-label text-base text-[#080808] dark:text-[#f8f8f8]">
+                  <span className={`sidebar-label text-base ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
                     {item.label}
                   </span>
                 )}
@@ -566,78 +584,14 @@ const StudentDashboard = () => {
           </nav>
         </div>
         <div className="flex flex-col gap-2 px-2 pb-4">
-          <div className="relative group">
-            <button
-              className="flex items-center justify-center md:justify-start gap-2 px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-[#181818] transition text-[#080808] dark:text-[#f8f8f8] w-full"
-              title={`Language`}
-            >
-              <span>🌐</span>
-              {!collapsed && (
-                <>
-                  <span className="sidebar-label text-base">
-                    {currentLanguage}
-                  </span>
-                  <span>▼</span>
-                </>
-              )}
-            </button>
-            {!collapsed && (
-              <div className="absolute bottom-full left-0 mb-2 w-full bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-lg shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                {Object.keys(LANGUAGE_MAPPING)
-                  .filter(
-                    (name) => BACKEND_LANGUAGE_MAP[LANGUAGE_MAPPING[name]]
-                  )
-                  .map((languageName) => (
-                    <div
-                      key={languageName}
-                      className={`px-4 py-2 text-sm cursor-pointer ${
-                        currentLanguage === languageName
-                          ? "bg-[#ece9ff] dark:bg-[#18182b] text-[#7c3aed] dark:text-[#a78bfa]"
-                          : "text-[#080808] dark:text-[#f8f8f8] hover:bg-gray-100 dark:hover:bg-[#222]"
-                      }`}
-                      onClick={() => {
-                        if (currentLanguage !== languageName) {
-                          updateLanguagePreference(languageName);
-                        }
-                      }}
-                    >
-                      {isUpdatingLanguage &&
-                      currentLanguage === languageName ? (
-                        <span className="flex items-center">
-                          <svg
-                            className="animate-spin -ml-1 mr-2 h-3 w-3 text-[#7c3aed] dark:text-[#a78bfa]"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Updating...
-                        </span>
-                      ) : (
-                        languageName
-                      )}
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
           <button
-            className="flex items-center justify-center md:justify-start gap-2 px-2 py-2 rounded hover:bg-red-50 dark:hover:bg-[#181818] text-red-600 dark:text-red-400 transition"
+            className={`flex items-center justify-center md:justify-start gap-2 px-2 py-2 rounded transition ${
+              isDark
+                ? "hover:bg-[#181818] text-red-400"
+                : "hover:bg-red-50 text-red-600"
+            }`}
             onClick={handleLogout}
-            title={"Logout"}
+            title="Logout"
           >
             <FaSignOutAlt />
             {!collapsed && (
@@ -647,88 +601,121 @@ const StudentDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">{renderContent()}</main>
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Bar */}
+        <motion.header
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className={`sticky top-0 z-20 backdrop-blur border-b px-4 md:px-8 py-4 ${
+            isDark
+              ? "bg-[#101010]/90 border-[#222]"
+              : "bg-white/90 border-gray-200"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <h1 className={`text-lg md:text-xl font-semibold truncate ${
+                isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+              }`}>
+                Student Portal
+              </h1>
+            </div>
+            <ThemeToggle className="h-8" />
+          </div>
+        </motion.header>
+
+        {/* Content Area */}
+        <main className={`flex-1 p-4 md:p-8 overflow-auto ${isDark ? "bg-[#080808]" : "bg-[#f8f8f8]"}`}>
+          <div className="max-w-6xl mx-auto w-full">{renderContent()}</div>
+        </main>
+      </div>
 
       {/* Private Course Modal */}
-      {showPrivateCourseModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowPrivateCourseModal(false)}
-        >
+      <AnimatePresence>
+        {showPrivateCourseModal && (
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-8 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowPrivateCourseModal(false)}
           >
-            <h3 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              Join Private Course
-            </h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder={"Course Code"}
-                value={privateCourseData.code}
-                onChange={(e) =>
-                  setPrivateCourseData({
-                    ...privateCourseData,
-                    code: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#222] border border-gray-200 dark:border-[#333] text-[#080808] dark:text-[#f8f8f8] focus:ring-2 focus:ring-[#7c3aed] dark:focus:ring-[#a78bfa] focus:outline-none"
-              />
-              <input
-                type="password"
-                placeholder={"Course Password"}
-                value={privateCourseData.password}
-                onChange={(e) =>
-                  setPrivateCourseData({
-                    ...privateCourseData,
-                    password: e.target.value,
-                  })
-                }
-                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#222] border border-gray-200 dark:border-[#333] text-[#080808] dark:text-[#f8f8f8] focus:ring-2 focus:ring-[#7c3aed] dark:focus:ring-[#a78bfa] focus:outline-none"
-              />
-            </div>
-            <div className="flex space-x-4 mt-6">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowPrivateCourseModal(false)}
-                className="flex-1 py-2 border border-gray-200 dark:border-[#222] text-[#080808] dark:text-[#f8f8f8] rounded-lg"
-              >
-                Cancel
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handlePrivateCourseJoin}
-                disabled={loading}
-                className="flex-1 py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium disabled:opacity-50"
-              >
-                {loading ? "Joining..." : "Join Course"}
-              </motion.button>
-            </div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`rounded-2xl p-6 w-full max-w-md ${
+                isDark ? "bg-[#101010] border border-[#222]" : "bg-white border border-gray-200"
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className={`text-2xl font-bold mb-6 ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
+                Join Private Course
+              </h3>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Course Code"
+                  value={privateCourseData.code}
+                  onChange={(e) =>
+                    setPrivateCourseData({
+                      ...privateCourseData,
+                      code: e.target.value,
+                    })
+                  }
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none ${
+                    isDark
+                      ? "bg-[#222] border-[#333] text-[#f8f8f8] focus:ring-[#a78bfa]"
+                      : "bg-white border-gray-200 text-[#080808] focus:ring-[#7c3aed]"
+                  }`}
+                />
+                <input
+                  type="password"
+                  placeholder="Course Password"
+                  value={privateCourseData.password}
+                  onChange={(e) =>
+                    setPrivateCourseData({
+                      ...privateCourseData,
+                      password: e.target.value,
+                    })
+                  }
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none ${
+                    isDark
+                      ? "bg-[#222] border-[#333] text-[#f8f8f8] focus:ring-[#a78bfa]"
+                      : "bg-white border-gray-200 text-[#080808] focus:ring-[#7c3aed]"
+                  }`}
+                />
+              </div>
+              <div className="flex gap-3 mt-6">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowPrivateCourseModal(false)}
+                  className={`flex-1 py-2 border rounded-lg ${
+                    isDark
+                      ? "border-[#222] text-[#f8f8f8]"
+                      : "border-gray-200 text-[#080808]"
+                  }`}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePrivateCourseJoin}
+                  disabled={loading}
+                  className={`flex-1 py-2 rounded-lg font-medium disabled:opacity-50 ${
+                    isDark ? "bg-[#a78bfa] text-white" : "bg-[#7c3aed] text-white"
+                  }`}
+                >
+                  {loading ? "Joining..." : "Join Course"}
+                </motion.button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        theme={isDark ? "dark" : "light"}
-        toastStyle={{
-          backgroundColor: isDark ? "#181818" : "#ffffff",
-          color: isDark ? "#f8f8f8" : "#080808",
-          border: isDark ? "1px solid #222" : "1px solid #e5e7eb",
-        }}
-      />
-
-      <WikipediaShortsLauncher />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
