@@ -18,7 +18,7 @@ const Landing = () => {
         <Navbar />
         <HeroSection />
         <FeaturesGrid />
-        <VideoSection />
+        {/*<VideoSection />*/}
         <TestimonialsMarquee />
         <CTASection ref={ctaRef} />
         <Footer />
