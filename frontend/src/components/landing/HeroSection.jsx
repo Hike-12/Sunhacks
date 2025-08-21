@@ -5,18 +5,16 @@ import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const { isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("summaries");
   const navigate = useNavigate();
 
   const tabs = [
-    { id: "dashboard", label: "Dashboard", image: "/dashboard.png" },
-    { id: "courses", label: "Courses", image: "/courses.png" },
-    { id: "analytics", label: "Analytics", image: "/analytics.png" },
-    {
-      id: "multi-lingual",
-      label: "Multilingual",
-      image: "/multiLingual.png",
-    },
+    { id: "summaries", label: "Smart Summaries", image: "/summaries.png" },
+    { id: "study-flow", label: "Personalized Study Flow", image: "/studyFlow.png" },
+    { id: "flashcards", label: "Flashcards & Quizzes", image: "/flashcards.png" },
+    { id: "ai-tutor", label: "AI Tutor", image: "/aiTutor.png" },
+    { id: "multi-lingual", label: "Multilingual", image: "/multiLingual.png" },
+    { id: "dashboard", label: "Progress Dashboard", image: "/dashboard.png" },
   ];
 
   return (
@@ -43,7 +41,7 @@ const HeroSection = () => {
           >
             Learning
           </span>{" "}
-          in India
+          with StudyGenie
         </h1>
         <p
           className={`
@@ -51,8 +49,9 @@ const HeroSection = () => {
             ${isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"}
           `}
         >
-          Empowering educators and students with AI-powered learning tools
-          designed for Indian languages and culture.
+          Turn your notes, PDFs, and books into AI-powered study guides,
+          flashcards, quizzes, and summaries. Personalized, multilingual, and
+          interactive – all in one platform.
         </p>
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -66,7 +65,7 @@ const HeroSection = () => {
             }`}
             onClick={() => navigate("/signup")}
           >
-            Start Teaching
+            Get Started
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -85,11 +84,11 @@ const HeroSection = () => {
                 ?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            Watch Demo
+            See Demo
           </motion.button>
         </div>
       </motion.div>
-      {/* Demo Container - keep max-w-5xl for this part */}
+      {/* Demo Container */}
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -97,7 +96,6 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="relative"
         >
-          {/* Static Gradient Border */}
           <div
             className={`absolute -inset-1 rounded-2xl ${
               isDark
@@ -175,13 +173,11 @@ const HeroSection = () => {
                     ? "bg-gradient-to-br from-[#4a4494]/20 to-[#4a4494]/10"
                     : "bg-gradient-to-br from-[#222052]/20 to-[#222052]/10"
                 }`}
-                style={{ padding: 0 }}
               >
                 <img
                   src={tabs.find((tab) => tab.id === activeTab)?.image}
                   alt={`${activeTab} preview`}
                   className="w-full h-full object-fill"
-                  style={{ padding: 0 }}
                 />
               </motion.div>
             </div>

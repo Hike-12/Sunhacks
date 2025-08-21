@@ -3,7 +3,7 @@ import { ThemeProvider } from "../../context/ThemeContext";
 import Navbar from "./Navbar";
 import HeroSection from "./HeroSection";
 import FeaturesGrid from "./FeaturesGrid";
-import VideoSection from "./VideoSection";
+// import VideoSection from "./VideoSection";
 import TestimonialsMarquee from "./TestimonialsMarquee";
 import CTASection from "./CTASection";
 import Footer from "./Footer";
@@ -18,7 +18,7 @@ const Landing = () => {
         <Navbar />
         <HeroSection />
         <FeaturesGrid />
-        <VideoSection />
+        {/*<VideoSection />*/}
         <TestimonialsMarquee />
         <CTASection ref={ctaRef} />
         <Footer />
