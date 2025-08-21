@@ -8,7 +8,7 @@ import {
   FaLanguage 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Courses from "../components/teacher/Courses";
+import Courses from "./teacher/Courses";
 import Overview from "../components/teacher/Overview";
 import { useTheme } from "../context/ThemeContext";
 

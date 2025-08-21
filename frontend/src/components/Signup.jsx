@@ -15,10 +15,6 @@ const languages = [
   "Gujarati",
   "English",
 ];
-const roles = [
-  { value: "student", label: "👨‍🎓 Student" },
-  { value: "teacher", label: "👨‍🏫 Teacher" },
-];
 
 const Signup = () => {
   const { isDark } = useTheme();
@@ -28,7 +24,7 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
     language: "Hindi",
-    role: "student",
+    role: "student", // Default role set to student
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -65,7 +61,10 @@ const Signup = () => {
         return;
       }
     }
-    setStep((s) => s + 1);
+    // Only allow up to step 2
+    if (step < 2) {
+      setStep((s) => s + 1);
+    }
   };
 
   const handlePrev = () => setStep((s) => s - 1);
@@ -84,7 +83,7 @@ const Signup = () => {
             email: formData.email,
             password: formData.password,
             language: formData.language,
-            role: formData.role,
+            role: "teacher", // Always send teacher
           }),
         }
       );
@@ -207,79 +206,6 @@ const Signup = () => {
         </>
       );
     }
-    if (step === 3) {
-      return (
-        <>
-          <h2
-            className={`text-xl font-semibold text-center mb-4 ${
-              isDark ? "text-[#f8f8f8]" : "text-[#222052]"
-            }`}
-          >
-            Preferences
-          </h2>
-          <div className="mb-3">
-            <label
-              className={`block mb-1 text-sm font-medium ${
-                isDark ? "text-[#f8f8f8]" : "text-[#222052]"
-              }`}
-            >
-              Preferred Language
-            </label>
-            <select
-              value={formData.language}
-              onChange={(e) =>
-                setFormData({ ...formData, language: e.target.value })
-              }
-              className={`
-                w-full px-4 py-3 rounded-xl border text-sm
-                ${
-                  isDark
-                    ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                    : "bg-[#f8f8f8] text-[#222052] border-[#e5e7eb]"
-                }
-                focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200
-              `}
-            >
-              {languages.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              className={`block mb-1 text-sm font-medium ${
-                isDark ? "text-[#f8f8f8]" : "text-[#222052]"
-              }`}
-            >
-              Select Role
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
-              className={`
-                w-full px-4 py-3 rounded-xl border text-sm
-                ${
-                  isDark
-                    ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                    : "bg-[#f8f8f8] text-[#222052] border-[#e5e7eb]"
-                }
-                focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200
-              `}
-            >
-              {roles.map((role) => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </>
-      );
-    }
   };
 
   return (
@@ -292,7 +218,7 @@ const Signup = () => {
         <div className="flex flex-row items-center justify-center gap-3 mb-4">
           <img
             src="/logo.png"
-            alt="E-Gurukul Logo"
+            alt="StudyGenie Logo"
             className="w-10 h-10 rounded-lg"
           />
           <h1
@@ -300,7 +226,7 @@ const Signup = () => {
               isDark ? "text-[#f8f8f8]" : "text-[#222052]"
             }`}
           >
-            E-Gurukul
+            StudyGenie
           </h1>
         </div>
         <div
@@ -316,7 +242,7 @@ const Signup = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (step < 3) {
+              if (step < 2) {
                 handleNext();
               } else {
                 handleSubmit(e);
@@ -339,7 +265,7 @@ const Signup = () => {
                   Back
                 </button>
               )}
-              {step < 3 ? (
+              {step < 2 ? (
                 <button
                   type="submit"
                   className={`ml-auto px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${

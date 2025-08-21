@@ -113,7 +113,9 @@ const TeacherDashboard = () => {
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "analytics":
         return <Analytics />; 
-        case "pdf-translator":
+      case "my-courses":
+        return <MyCourses />;
+      case "pdf-translator":
         return <PDFTranslator />;
       default:
         return <Overview />;

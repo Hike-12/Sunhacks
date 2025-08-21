@@ -23,7 +23,7 @@ import WikipediaShorts, { WikipediaShortsLauncher } from "./components/TikTok";
 
 function App() {
   return (
-    <ThemeProvider>
+      <ThemeProvider>
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
