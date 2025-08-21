@@ -1,0 +1,73 @@
+@import "tailwindcss";
+@import "@fontsource/inter";
+@import "@fontsource/bricolage-grotesque";
+
+@layer base {
+  :root {
+    --color-primary: #222052;
+    --color-background-light: #f8f8f8;
+    --color-background-dark: #080808;
+    --color-text-light: #080808;
+    --color-text-dark: #f8f8f8;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    font-family: "Inter", sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Apply background colors directly without @apply */
+  body {
+    background-color: #f8f8f8;
+    color: #080808;
+  }
+
+  body.dark {
+    background-color: #080808;
+    color: #f8f8f8;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Bricolage Grotesque", sans-serif;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(248, 248, 248, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(248, 248, 248, 0.2);
+}
+
+.glass-dark {
+  background: rgba(8, 8, 8, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(8, 8, 8, 0.2);
+}
+
+/* Thin, dark scrollbars */
+body::-webkit-scrollbar {
+  width: 1px;
+  background: transparent; /* Remove white background */
+}
+body::-webkit-scrollbar-thumb {
+  background: #080808;
+  border-radius: 8px;
+}
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #080808 transparent; /* Remove white background */
+}
