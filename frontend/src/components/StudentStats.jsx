@@ -103,12 +103,12 @@ const StudentStats = () => {
           const data = await response.json();
           if (data.success) {
             setCurrentLanguage(selectedLanguageName);
-            toast.success(<TranslatedText>Language preference updated successfully!</TranslatedText>);
+            toast.success(`Language preference updated successfully!`);
           } else {
-            toast.error(data.message || <TranslatedText>Failed to update language preference</TranslatedText>);
+            toast.error(data.message || `Failed to update language preference`);
           }
         } catch (error) {
-          toast.error(<TranslatedText>Something went wrong. Please try again.</TranslatedText>);
+          toast.error(`Something went wrong. Please try again.`);
         } finally {
           setIsUpdatingLanguage(false);
         }
@@ -127,7 +127,7 @@ const StudentStats = () => {
                 setShareableLink(data.shareableLink);
             }
         } catch (error) {
-            toast.error(<TranslatedText>Failed to load stats</TranslatedText>);
+            toast.error(`Failed to load stats`);
         } finally {
             setLoading(false);
         }
@@ -146,7 +146,7 @@ const StudentStats = () => {
                 setAchievementStats(data.stats);
             }
         } catch (error) {
-            toast.error(<TranslatedText>Failed to load achievements</TranslatedText>);
+            toast.error(`Failed to load achievements`);
         }
     };
 
@@ -157,10 +157,10 @@ const StudentStats = () => {
     const copyToClipboard = async () => {
         try {
             await navigator.clipboard.writeText(shareableLink);
-            toast.success(<TranslatedText>Link copied to clipboard!</TranslatedText>);
+            toast.success(`Link copied to clipboard!`);
             setShowShareModal(false);
         } catch (error) {
-            toast.error(<TranslatedText>Failed to copy link</TranslatedText>);
+            toast.error(`Failed to copy link`);
         }
     };
 
@@ -232,12 +232,12 @@ const StudentStats = () => {
                 a.download = 'my-learning-stats.png';
                 a.click();
                 URL.revokeObjectURL(url);
-                toast.success(<TranslatedText>Stats image downloaded!</TranslatedText>);
+                toast.success(`Stats image downloaded!`);
             });
 
             setShowShareModal(false);
         } catch (error) {
-            toast.error(<TranslatedText>Failed to generate image</TranslatedText>);
+            toast.error(`Failed to generate image`);
         }
     };
 
@@ -251,7 +251,7 @@ const StudentStats = () => {
             <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#030303]' : 'bg-[#f8f8f8]'}`}>
                 <motion.div className={`flex items-center space-x-2 ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'}`}>
                     <div className={`animate-spin h-6 w-6 border-2 ${isDark ? 'border-[#222052]' : 'border-[#080808]'} border-t-transparent rounded-full`}></div>
-                    <span><TranslatedText>Loading stats...</TranslatedText></span>
+                    <span>`Loading stats...`</span>
                 </motion.div>
             </div>
         );
@@ -272,14 +272,14 @@ const StudentStats = () => {
                         className="text-center"
                     >
                         <h1 className={`text-4xl font-bold ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'} mb-4`}>
-                            📊 <TranslatedText>My Learning Stats</TranslatedText>
+                            📊 `My Learning Stats`
                         </h1>
                     </motion.div>
                     <div className="flex items-center gap-2">
                         <div className="relative group">
                             <button
                                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition"
-                                title={<TranslatedText>Language</TranslatedText>}
+                                title={`Language`}
                             >
                                 <span>🌐</span>
                                 <span>{currentLanguage}</span>
@@ -327,7 +327,7 @@ const StudentStats = () => {
                                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                                         ></path>
                                                     </svg>
-                                                    <TranslatedText>Updating...</TranslatedText>
+                                                    `Updating...`
                                                 </span>
                                             ) : (
                                                 languageName
@@ -358,12 +358,12 @@ const StudentStats = () => {
                             <div className="text-3xl mb-2">{stat.icon}</div>
                             <h3 className={`text-2xl font-bold ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'}`}>{stat.value}</h3>
                             <p className={isDark ? 'text-[#f8f8f8]/70' : 'text-[#080808]/70'}>
-                                <TranslatedText>{stat.label}</TranslatedText>
+                                `{stat.label}`
                             </p>
                             {stat.subtext && (
                                 <div className="mt-2">
                                     <div className={`text-xs ${isDark ? 'text-[#f8f8f8]/60' : 'text-[#080808]/60'}`}>
-                                        {stat.subtext} <TranslatedText>points</TranslatedText>
+                                        {stat.subtext} `points`
                                     </div>
                                 </div>
                             )}
@@ -373,7 +373,7 @@ const StudentStats = () => {
 
                 <div className="flex justify-between items-center mb-6">
                     <h2 className={`text-2xl font-bold ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'}`}>
-                        🏆 <TranslatedText>Achievement Progress</TranslatedText>
+                        🏆 `Achievement Progress`
                     </h2>
                     <div className="flex gap-2">
                         <Link to="/my-achievements">
@@ -382,7 +382,7 @@ const StudentStats = () => {
                                 whileTap={{ scale: 0.95 }}
                                 className={`px-4 py-2 ${isDark ? 'bg-[#030303] text-[#f8f8f8] border-[#f8f8f8]/20' : 'bg-[#f8f8f8] text-[#080808] border-[#080808]/20'} rounded-lg border text-sm`}
                             >
-                                🏆 <TranslatedText>My Achievements</TranslatedText>
+                                🏆 `My Achievements`
                             </motion.button>
                         </Link>
                         <Link to="/achievements">
@@ -391,7 +391,7 @@ const StudentStats = () => {
                                 whileTap={{ scale: 0.95 }}
                                 className={`px-4 py-2 ${isDark ? 'bg-[#030303] text-[#f8f8f8] border-[#f8f8f8]/20' : 'bg-[#f8f8f8] text-[#080808] border-[#080808]/20'} rounded-lg border text-sm`}
                             >
-                                🎯 <TranslatedText>View All</TranslatedText>
+                                🎯 `View All`
                             </motion.button>
                         </Link>
                     </div>
@@ -403,7 +403,7 @@ const StudentStats = () => {
                     onClick={shareStats}
                     className={`px-6 py-2 ${isDark ? 'bg-[#222052] text-[#f8f8f8] border-[#f8f8f8]/20' : 'bg-[#f8f8f8] text-[#080808] border-[#080808]/20'} rounded-lg border`}
                 >
-                    🔗 <TranslatedText>Share My Progress</TranslatedText>
+                    🔗 `Share My Progress`
                 </motion.button>
             </div>
 
@@ -422,7 +422,7 @@ const StudentStats = () => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className={`text-2xl font-bold ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'} mb-4 text-center`}>
-                            🚀 <TranslatedText>Share Your Progress</TranslatedText>
+                            🚀 `Share Your Progress`
                         </h3>
                         
                         <div className="space-y-3">
@@ -461,7 +461,7 @@ const StudentStats = () => {
                                 onClick={generateImage}
                                 className={`w-full p-3 rounded-lg ${isDark ? 'bg-[#030303] border border-[#f8f8f8]/20' : 'bg-[#f8f8f8] border border-[#080808]/20'} ${isDark ? 'text-[#f8f8f8]' : 'text-[#080808]'} transition flex items-center justify-center gap-2`}
                             >
-                                📸 <TranslatedText>Download as Image</TranslatedText>
+                                📸 `Download as Image`
                             </button>
                         </div>
                     </motion.div>

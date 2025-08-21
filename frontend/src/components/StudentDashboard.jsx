@@ -156,12 +156,12 @@ const StudentDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setCurrentLanguage(selectedLanguageName);
-        toast.success(<TranslatedText>Language preference updated successfully!</TranslatedText>);
+        toast.success(`Language preference updated successfully!`);
       } else {
-        toast.error(data.message || <TranslatedText>Failed to update language preference</TranslatedText>);
+        toast.error(data.message || `Failed to update language preference`);
       }
     } catch (error) {
-      toast.error(<TranslatedText>Something went wrong. Please try again.</TranslatedText>);
+      toast.error(`Something went wrong. Please try again.`);
     } finally {
       setIsUpdatingLanguage(false);
     }
@@ -182,7 +182,7 @@ const StudentDashboard = () => {
         setCourses(data.courses);
       }
     } catch (error) {
-      console.error(<TranslatedText>Error fetching courses:</TranslatedText>, error);
+      console.error(`Error fetching courses:`, error);
     }
   };
 
@@ -201,7 +201,7 @@ const StudentDashboard = () => {
         setEnrolledCourses(data.courses);
       }
     } catch (error) {
-      console.error(<TranslatedText>Error fetching enrolled courses:</TranslatedText>, error);
+      console.error(`Error fetching enrolled courses:`, error);
     }
   };
 
@@ -222,14 +222,14 @@ const StudentDashboard = () => {
 
       const data = await response.json();
       if (data.success) {
-        toast.success(<TranslatedText>Successfully enrolled in course!</TranslatedText>);
+        toast.success(`Successfully enrolled in course!`);
         fetchEnrolledCourses();
         fetchCourses();
       } else {
-        toast.error(data.message || <TranslatedText>Failed to enroll</TranslatedText>);
+        toast.error(data.message || `Failed to enroll`);
       }
     } catch (error) {
-      toast.error(<TranslatedText>Something went wrong. Please try again.</TranslatedText>);
+      toast.error(`Something went wrong. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -237,7 +237,7 @@ const StudentDashboard = () => {
 
   const handlePrivateCourseJoin = async () => {
     if (!privateCourseData.code || !privateCourseData.password) {
-      toast.error(<TranslatedText>Please enter both course code and password</TranslatedText>);
+      toast.error(`Please enter both course code and password`);
       return;
     }
 
@@ -257,15 +257,15 @@ const StudentDashboard = () => {
 
       const data = await response.json();
       if (data.success) {
-        toast.success(<TranslatedText>Successfully joined private course!</TranslatedText>);
+        toast.success(`Successfully joined private course!`);
         setShowPrivateCourseModal(false);
         setPrivateCourseData({ code: "", password: "" });
         fetchEnrolledCourses();
       } else {
-        toast.error(data.message || <TranslatedText>Failed to join course</TranslatedText>);
+        toast.error(data.message || `Failed to join course`);
       }
     } catch (error) {
-      toast.error(<TranslatedText>Something went wrong. Please try again.</TranslatedText>);
+      toast.error(`Something went wrong. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -274,7 +274,7 @@ const StudentDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    toast.success(<TranslatedText>Logged out successfully!</TranslatedText>);
+    toast.success(`Logged out successfully!`);
     setTimeout(() => navigate("/login"), 1000);
   };
 
@@ -294,7 +294,7 @@ const StudentDashboard = () => {
           className="flex items-center space-x-2 text-[#080808] dark:text-[#f8f8f8]"
         >
           <div className="animate-spin h-6 w-6 border-2 border-[#080808] dark:border-[#f8f8f8] border-t-transparent rounded-full"></div>
-          <span><TranslatedText>Loading...</TranslatedText></span>
+          <span>Loading...</span>
         </motion.div>
       </div>
     );
@@ -306,7 +306,7 @@ const StudentDashboard = () => {
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              <TranslatedText>My Enrolled Courses</TranslatedText>
+              My Enrolled Courses
             </h2>
             {enrolledCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -329,7 +329,7 @@ const StudentDashboard = () => {
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
-                        <TranslatedText>Progress:</TranslatedText> {Math.round(course.progress || 0)}%
+                        Progress: {Math.round(course.progress || 0)}%
                       </span>
                       <span className="text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
                         {course.language}
@@ -348,10 +348,10 @@ const StudentDashboard = () => {
               <div className="text-center py-12 bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl">
                 <div className="text-6xl mb-4">📚</div>
                 <h4 className="text-xl font-semibold mb-2 text-[#080808] dark:text-[#f8f8f8]">
-                  <TranslatedText>No courses yet</TranslatedText>
+                  No courses yet
                 </h4>
                 <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70">
-                  <TranslatedText>Start learning by enrolling in a course!</TranslatedText>
+                  Start learning by enrolling in a course!
                 </p>
               </div>
             )}
@@ -365,11 +365,11 @@ const StudentDashboard = () => {
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              <TranslatedText>PDF Translator</TranslatedText>
+              PDF Translator
             </h2>
             <div className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6">
               <p className="text-[#080808] dark:text-[#f8f8f8] mb-4">
-                <TranslatedText>This feature allows you to translate PDF documents to your preferred language.</TranslatedText>
+                This feature allows you to translate PDF documents to your preferred language.
               </p>
               <PDFTranslator />
             </div>
@@ -379,7 +379,7 @@ const StudentDashboard = () => {
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              <TranslatedText>Achievements</TranslatedText>
+              Achievements
             </h2>
             <div className="bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] rounded-xl p-6">
               <AllAchievements/>
@@ -391,7 +391,7 @@ const StudentDashboard = () => {
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-[#080808] dark:text-[#f8f8f8]">
-                <TranslatedText>Available Courses</TranslatedText>
+                Available Courses
               </h2>
               <div className="flex items-center gap-4">
                 <button
@@ -399,8 +399,8 @@ const StudentDashboard = () => {
                   className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition"
                   title={
                     isDark ? 
-                    <TranslatedText>Switch to light mode</TranslatedText> : 
-                    <TranslatedText>Switch to dark mode</TranslatedText>
+                    "Switch to light mode" : 
+                    "Switch to dark mode"
                   }
                 >
                   {isDark ? (
@@ -415,7 +415,7 @@ const StudentDashboard = () => {
                   onClick={() => setShowPrivateCourseModal(true)}
                   className="px-4 py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium"
                 >
-                  <TranslatedText>Join Private Course</TranslatedText>
+                  Join Private Course
                 </motion.button>
               </div>
             </div>
@@ -423,7 +423,7 @@ const StudentDashboard = () => {
             <div className="mb-6">
               <input
                 type="text"
-                placeholder={<TranslatedText>"Search courses..."</TranslatedText>}
+                placeholder={"Search courses..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#181818] border border-gray-200 dark:border-[#222] text-[#080808] dark:text-[#f8f8f8] focus:ring-2 focus:ring-[#7c3aed] dark:focus:ring-[#a78bfa] focus:outline-none"
@@ -461,7 +461,7 @@ const StudentDashboard = () => {
                     </p>
 
                     <div className="flex justify-between items-center mb-4 text-sm text-[#080808]/60 dark:text-[#f8f8f8]/60">
-                      <span><TranslatedText>By:</TranslatedText> {course.teacher}</span>
+                      <span>By: {course.teacher}</span>
                       <span>{course.language}</span>
                     </div>
 
@@ -472,7 +472,7 @@ const StudentDashboard = () => {
                         onClick={() => navigate(`/course/${course._id}`)}
                         className="w-full py-2 bg-[#7c3aed]/10 dark:bg-[#a78bfa]/10 text-[#7c3aed] dark:text-[#a78bfa] rounded-lg font-medium"
                       >
-                        <TranslatedText>Continue Learning →</TranslatedText>
+                        Continue Learning →
                       </motion.button>
                     ) : (
                       <motion.button
@@ -482,7 +482,7 @@ const StudentDashboard = () => {
                         disabled={loading}
                         className="w-full py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium disabled:opacity-50"
                       >
-                        {loading ? <TranslatedText>Enrolling...</TranslatedText> : <TranslatedText>Enroll Now</TranslatedText>}
+                        {loading ? "Enrolling..." : "Enroll Now"}
                       </motion.button>
                     )}
                   </motion.div>
@@ -494,10 +494,10 @@ const StudentDashboard = () => {
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🔍</div>
                 <h4 className="text-xl font-semibold mb-2 text-[#080808] dark:text-[#f8f8f8]">
-                  <TranslatedText>No courses found</TranslatedText>
+                  No courses found
                 </h4>
                 <p className="text-[#080808]/70 dark:text-[#f8f8f8]/70">
-                  <TranslatedText>Try adjusting your search terms</TranslatedText>
+                  Try adjusting your search terms
                 </p>
               </div>
             )}
@@ -521,7 +521,7 @@ const StudentDashboard = () => {
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-[#222]">
             {!collapsed && (
               <h1 className="font-bold text-[#080808] dark:text-[#f8f8f8]">
-                <TranslatedText>E-Gurukul</TranslatedText>
+                StudyGenie
               </h1>
             )}
             <button
@@ -558,7 +558,7 @@ const StudentDashboard = () => {
                 </span>
                 {!collapsed && (
                   <span className="sidebar-label text-base text-[#080808] dark:text-[#f8f8f8]">
-                    <TranslatedText>{item.label}</TranslatedText>
+                    {item.label}
                   </span>
                 )}
               </button>
@@ -569,7 +569,7 @@ const StudentDashboard = () => {
           <div className="relative group">
             <button
               className="flex items-center justify-center md:justify-start gap-2 px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-[#181818] transition text-[#080808] dark:text-[#f8f8f8] w-full"
-              title={<TranslatedText>Language</TranslatedText>}
+              title={`Language`}
             >
               <span>🌐</span>
               {!collapsed && (
@@ -624,7 +624,7 @@ const StudentDashboard = () => {
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                           </svg>
-                          <TranslatedText>Updating...</TranslatedText>
+                          Updating...
                         </span>
                       ) : (
                         languageName
@@ -637,11 +637,11 @@ const StudentDashboard = () => {
           <button
             className="flex items-center justify-center md:justify-start gap-2 px-2 py-2 rounded hover:bg-red-50 dark:hover:bg-[#181818] text-red-600 dark:text-red-400 transition"
             onClick={handleLogout}
-            title={<TranslatedText>Logout</TranslatedText>}
+            title={"Logout"}
           >
             <FaSignOutAlt />
             {!collapsed && (
-              <span className="sidebar-label text-base"><TranslatedText>Logout</TranslatedText></span>
+              <span className="sidebar-label text-base">Logout</span>
             )}
           </button>
         </div>
@@ -665,12 +665,12 @@ const StudentDashboard = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-2xl font-bold mb-6 text-[#080808] dark:text-[#f8f8f8]">
-              <TranslatedText>Join Private Course</TranslatedText>
+              Join Private Course
             </h3>
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder={<TranslatedText>Course Code</TranslatedText>}
+                placeholder={"Course Code"}
                 value={privateCourseData.code}
                 onChange={(e) =>
                   setPrivateCourseData({
@@ -682,7 +682,7 @@ const StudentDashboard = () => {
               />
               <input
                 type="password"
-                placeholder={<TranslatedText>Course Password</TranslatedText>}
+                placeholder={"Course Password"}
                 value={privateCourseData.password}
                 onChange={(e) =>
                   setPrivateCourseData({
@@ -700,7 +700,7 @@ const StudentDashboard = () => {
                 onClick={() => setShowPrivateCourseModal(false)}
                 className="flex-1 py-2 border border-gray-200 dark:border-[#222] text-[#080808] dark:text-[#f8f8f8] rounded-lg"
               >
-                <TranslatedText>Cancel</TranslatedText>
+                Cancel
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -709,7 +709,7 @@ const StudentDashboard = () => {
                 disabled={loading}
                 className="flex-1 py-2 bg-[#7c3aed] dark:bg-[#a78bfa] text-white rounded-lg font-medium disabled:opacity-50"
               >
-                {loading ? <TranslatedText>Joining...</TranslatedText> : <TranslatedText>Join Course</TranslatedText>}
+                {loading ? "Joining..." : "Join Course"}
               </motion.button>
             </div>
           </motion.div>

@@ -23,8 +23,7 @@ import WikipediaShorts, { WikipediaShortsLauncher } from "./components/TikTok";
 
 function App() {
   return (
-     <LanguageProvider>
-      <ThemeProvider>
+    <ThemeProvider>
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -43,7 +42,6 @@ function App() {
       </Routes>
     </Router>
     </ThemeProvider>
-    </LanguageProvider>
   );
 }
 

@@ -126,12 +126,12 @@ const AllAchievements = () => {
       const data = await response.json();
       if (data.success) {
         setCurrentLanguage(selectedLanguageName);
-        toast.success(<TranslatedText>Language preference updated successfully!</TranslatedText>);
+        toast.success(`Language preference updated successfully!`);
       } else {
-        toast.error(data.message || <TranslatedText>Failed to update language preference</TranslatedText>);
+        toast.error(data.message || `Failed to update language preference`);
       }
     } catch (error) {
-      toast.error(<TranslatedText>Something went wrong. Please try again.</TranslatedText>);
+      toast.error(`Something went wrong. Please try again.`);
     } finally {
       setIsUpdatingLanguage(false);
     }
@@ -160,11 +160,11 @@ const AllAchievements = () => {
         setAchievements(data.achievements);
         setAchievementStats(data.stats);
       } else {
-        toast.error(<TranslatedText>Failed to load achievements</TranslatedText>);
+        toast.error(`Failed to load achievements`);
       }
     } catch (error) {
       console.error("Error fetching achievements:", error);
-      toast.error(<TranslatedText>Failed to load achievements data</TranslatedText>);
+      toast.error(`Failed to load achievements data`);
     } finally {
       setLoading(false);
     }
@@ -209,9 +209,9 @@ const AllAchievements = () => {
       <main className="max-w-4xl mx-auto px-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold"><TranslatedText>🎯 All Achievements</TranslatedText></h1>
+            <h1 className="text-3xl font-bold">`🎯 All Achievements`</h1>
             <p className={isDark ? 'text-[#f8f8f8]/60' : 'text-[#080808]/80'}>
-              <TranslatedText>You've unlocked {unlockedCount} of {achievements.length} achievements ({percentage}%)</TranslatedText>
+              `You've unlocked {unlockedCount} of {achievements.length} achievements ({percentage}%)`
             </p>
           </div>
 
@@ -219,7 +219,7 @@ const AllAchievements = () => {
             <div className="relative group">
               <button
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#222] transition"
-                title={<TranslatedText>Language</TranslatedText>}
+                title={`Language`}
               >
                 <span>🌐</span>
                 <span>{currentLanguage}</span>
@@ -267,7 +267,7 @@ const AllAchievements = () => {
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                           </svg>
-                          <TranslatedText>Updating...</TranslatedText>
+                          `Updating...`
                         </span>
                       ) : (
                         languageName
@@ -283,7 +283,7 @@ const AllAchievements = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                🏆 <TranslatedText>My Achievements</TranslatedText>
+                🏆 `My Achievements`
               </motion.button>
             </Link>
             <Link to="/student-stats">
@@ -304,7 +304,7 @@ const AllAchievements = () => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <TranslatedText>Back to Stats</TranslatedText>
+                `Back to Stats`
               </motion.button>
             </Link>
           </div>
@@ -314,11 +314,11 @@ const AllAchievements = () => {
         <div className={`${isDark ? 'bg-[#222052] border-[#f8f8f8]/20' : 'bg-white border-gray-200'} border rounded-xl p-6 mb-6`}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <h2 className="text-xl font-bold mb-2 sm:mb-0">
-              <TranslatedText>Your Achievement Progress</TranslatedText>
+              `Your Achievement Progress`
             </h2>
             <div className={`${isDark ? 'bg-[#4ade80]/10' : 'bg-[#4ade80]/20'} rounded-full px-4 py-1`}>
               <span className="text-sm font-medium text-[#4ade80]">
-                {percentage}% <TranslatedText>Complete</TranslatedText>
+                {percentage}% `Complete`
               </span>
             </div>
           </div>
@@ -356,7 +356,7 @@ const AllAchievements = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <TranslatedText>{category}</TranslatedText> ({count})
+                  `{category}` ({count})
                 </motion.button>
               );
             })}

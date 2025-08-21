@@ -113,22 +113,22 @@ const CourseViewer = () => {
       if (data.success) {
         setCurrentLanguage(selectedLanguageName);
         toast.success(
-          <TranslatedText>
+          `
             Language preference updated successfully!
-          </TranslatedText>
+          `
         );
       } else {
         toast.error(
           data.message || (
-            <TranslatedText>
+            `
               Failed to update language preference
-            </TranslatedText>
+            `
           )
         );
       }
     } catch (error) {
       toast.error(
-        <TranslatedText>Something went wrong. Please try again.</TranslatedText>
+        `Something went wrong. Please try again.`
       );
     } finally {
       setIsUpdatingLanguage(false);
@@ -235,7 +235,7 @@ const CourseViewer = () => {
       }
     } catch (error) {
       toast.error(
-        <TranslatedText>Failed to load course content</TranslatedText>
+        `Failed to load course content`
       );
     } finally {
       setLoading(false);
@@ -335,7 +335,7 @@ const CourseViewer = () => {
       // Course completed
       await markCourseAsCompleted();
       toast.success(
-        <TranslatedText>🎉 Course completed! Well done!</TranslatedText>
+        `🎉 Course completed! Well done!`
       );
       navigate("/student-dashboard");
     }
@@ -443,10 +443,10 @@ const CourseViewer = () => {
 
       if (data.success) {
         toast.success(
-          <TranslatedText>
+          `
             Quiz completed! Score: {score}/{totalQuestions} (
             {percentage.toFixed(1)}%)
-          </TranslatedText>
+          `
         );
 
         // Move to next slide after quiz completion
@@ -458,7 +458,7 @@ const CourseViewer = () => {
           // Course completed
           await markCourseAsCompleted();
           toast.success(
-            <TranslatedText>🎉 Course completed! Well done!</TranslatedText>
+            `🎉 Course completed! Well done!`
           );
           navigate("/student-dashboard");
         }
@@ -468,13 +468,13 @@ const CourseViewer = () => {
       } else {
         console.error("Quiz submission failed:", data);
         toast.error(
-          data.message || <TranslatedText>Failed to submit quiz</TranslatedText>
+          data.message || `Failed to submit quiz`
         );
       }
     } catch (error) {
       console.error("Quiz submission error:", error);
       toast.error(
-        <TranslatedText>Failed to submit quiz - network error</TranslatedText>
+        `Failed to submit quiz - network error`
       );
     }
   };
@@ -531,9 +531,9 @@ const CourseViewer = () => {
           className="w-full rounded-lg"
           style={{ maxHeight: "400px" }}
         >
-          <TranslatedText>
+          `
             Your browser does not support the video tag.
-          </TranslatedText>
+          `
         </video>
       </div>
     );
@@ -634,7 +634,7 @@ const CourseViewer = () => {
             } border-t-transparent rounded-full`}
           ></div>
           <span>
-            <TranslatedText>Loading course...</TranslatedText>
+            `Loading course...`
           </span>
         </motion.div>
       </div>
@@ -654,7 +654,7 @@ const CourseViewer = () => {
           }`}
         >
           <h2 className="text-2xl font-bold mb-4">
-            <TranslatedText>Course not found</TranslatedText>
+            `Course not found`
           </h2>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -666,7 +666,7 @@ const CourseViewer = () => {
                 : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
             } text-white rounded-lg font-medium`}
           >
-            <TranslatedText>Back to Dashboard</TranslatedText>
+            `Back to Dashboard`
           </motion.button>
         </div>
       </div>
@@ -692,7 +692,7 @@ const CourseViewer = () => {
           }`}
         >
           <h2 className="text-2xl font-bold mb-4">
-            <TranslatedText>Content not found</TranslatedText>
+            `Content not found`
           </h2>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -704,7 +704,7 @@ const CourseViewer = () => {
                 : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
             } text-white rounded-lg font-medium`}
           >
-            <TranslatedText>Back to Dashboard</TranslatedText>
+            `Back to Dashboard`
           </motion.button>
         </div>
       </div>
@@ -735,7 +735,7 @@ const CourseViewer = () => {
                   : "bg-[#7c3aed] hover:bg-[#6d28d9] text-white"
               } rounded-lg`}
             >
-              ← <TranslatedText>Back to Dashboard</TranslatedText>
+              ← `Back to Dashboard`
             </motion.button>
           </div>
 
@@ -755,7 +755,7 @@ const CourseViewer = () => {
                     ? "bg-[#222052] hover:bg-[#2d2a6e] text-[#f8f8f8]"
                     : "bg-[#7c3aed] hover:bg-[#6d28d9] text-white"
                 } rounded-lg`}
-                title={<TranslatedText>Language</TranslatedText>}
+                title={`Language`}
               >
                 <span>🌐</span>
                 <span>{currentLanguage}</span>
@@ -811,7 +811,7 @@ const CourseViewer = () => {
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             ></path>
                           </svg>
-                          <TranslatedText>Updating...</TranslatedText>
+                          `Updating...`
                         </span>
                       ) : (
                         languageName
@@ -885,7 +885,7 @@ const CourseViewer = () => {
                       isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                     } mb-4`}
                   >
-                    📹 <TranslatedText>Videos</TranslatedText>
+                    📹 `Videos`
                   </h3>
                   {currentContent.videoUrls.map((url, index) => (
                     <div key={index} className="mb-4">
@@ -904,7 +904,7 @@ const CourseViewer = () => {
                       isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                     } mb-4`}
                   >
-                    🖼️ <TranslatedText>Images</TranslatedText>
+                    🖼️ `Images`
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {currentContent.imageUrls.map((url, index) => (
@@ -924,7 +924,7 @@ const CourseViewer = () => {
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                   } mb-4`}
                 >
-                  📊 <TranslatedText>Diagram</TranslatedText>
+                  📊 `Diagram`
                 </h3>
                 <MermaidDiagram code={currentContent.mermaid} />
               </div>
@@ -943,7 +943,7 @@ const CourseViewer = () => {
                     : "border-[#7c3aed] text-[#7c3aed] hover:bg-[#f3f0ff]"
                 } rounded-lg disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                ← <TranslatedText>Previous</TranslatedText>
+                ← `Previous`
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -956,9 +956,9 @@ const CourseViewer = () => {
                 } text-white rounded-lg font-medium`}
               >
                 {currentSlide === flattenedContent.length - 1 ? (
-                  <TranslatedText>Complete Course</TranslatedText>
+                  `Complete Course`
                 ) : (
-                  <TranslatedText>Next</TranslatedText>
+                  `Next`
                 )}{" "}
                 →
               </motion.button>
@@ -978,16 +978,16 @@ const CourseViewer = () => {
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               } mb-6 text-center`}
             >
-              🧠 <TranslatedText>Quiz Time!</TranslatedText>
+              🧠 `Quiz Time!`
             </h2>
             <p
               className={`${
                 isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"
               } text-center mb-8`}
             >
-              <TranslatedText>
+              `
                 Test your understanding before moving forward
-              </TranslatedText>
+              `
             </p>
 
             <div className="space-y-6">
@@ -1053,7 +1053,7 @@ const CourseViewer = () => {
                     : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
                 } text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <TranslatedText>Submit Quiz</TranslatedText>
+                `Submit Quiz`
               </motion.button>
             </div>
           </motion.div>

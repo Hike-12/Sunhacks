@@ -32,12 +32,12 @@ const AchievementCard = ({ achievement }) => {
   
   // Translate category names
   const translatedCategories = {
-    beginner: <TranslatedText>Beginner</TranslatedText>,
-    streak: <TranslatedText>Streak</TranslatedText>,
-    completion: <TranslatedText>Completion</TranslatedText>,
-    variety: <TranslatedText>Variety</TranslatedText>,
-    time: <TranslatedText>Time</TranslatedText>,
-    perfection: <TranslatedText>Perfection</TranslatedText>,
+    beginner: `Beginner`,
+    streak: `Streak`,
+    completion: `Completion`,
+    variety: `Variety`,
+    time: `Time`,
+    perfection: `Perfection`,
   };
 
   const categoryColor = categoryColors[category] || "#A2BFFE";
@@ -65,10 +65,10 @@ const AchievementCard = ({ achievement }) => {
       
       <div className="space-y-2 mb-3">
         <h3 className={`font-bold text-base ${!unlocked && "text-[#f5f5f7]/60"}`}>
-          <TranslatedText>{name}</TranslatedText>
+          `{name}`
         </h3>
         <p className="text-xs text-[#f5f5f7]/60">
-          <TranslatedText>{description}</TranslatedText>
+          `{description}`
         </p>
       </div>
       
@@ -110,7 +110,7 @@ const AchievementCard = ({ achievement }) => {
           ? "bg-[#A2BFFE]/10 text-[#A2BFFE]" 
           : "bg-[#222] text-[#f5f5f7]/40"
       }`}>
-        {unlocked ? <TranslatedText>Unlocked</TranslatedText> : <TranslatedText>Locked</TranslatedText>}
+        {unlocked ? `Unlocked` : `Locked`}
       </div>
     </motion.div>
   );
