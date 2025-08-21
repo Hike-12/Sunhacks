@@ -64,7 +64,7 @@ const Footer = () => {
                 isDark ? "text-[#4a4494]" : "text-[#222052]"
               }`}
             >
-              Team SOS
+              Team PONY
             </span>
           </motion.p>
         </div>
