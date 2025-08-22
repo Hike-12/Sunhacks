@@ -9,8 +9,8 @@ const achievementRoutes = require("./routes/achievementRoutes");
 const diagramRoutes = require("./routes/diagramRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const pdfRoutes = require("./routes/pdfRoutes");
-const interviewRoutes = require('./routes/interviewRoutes');
-const videoRoutes = require('./routes/videoRoutes'); 
+const interviewRoutes = require("./routes/interviewRoutes");
+const videoRoutes = require("./routes/videoRoutes");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios"); // for HuggingFace API calls
@@ -38,7 +38,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Directories
+// Directories (ensure exist)
 const uploadsDir = path.join(__dirname, "uploads");
 const outputsDir = path.join(__dirname, "outputs");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -46,6 +46,7 @@ if (!fs.existsSync(outputsDir)) fs.mkdirSync(outputsDir, { recursive: true });
 
 // Serve generated videos + images
 app.use("/outputs", express.static(outputsDir));
+app.use("/uploads", express.static(uploadsDir));
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -55,42 +56,8 @@ app.use("/api/achievements", achievementRoutes);
 app.use("/api/diagram", diagramRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/interview", interviewRoutes);
+app.use("/api/video", videoRoutes); // mount video routes
 app.use("/api/tools", pdfRoutes);
-app.use("/api/video", videoRoutes);
-
-// ✅ NEW: Hugging Face Stable Diffusion v1.5 endpoint
-app.post("/api/generate-image", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
-    }
-
-    const response = await axios({
-      method: "post",
-      url: "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5",
-      headers: {
-        Authorization: `Bearer ${process.env.HF_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      data: { inputs: prompt },
-      responseType: "arraybuffer",
-    });
-
-    const filename = `image_${Date.now()}.png`;
-    const filePath = path.join(outputsDir, filename);
-
-    fs.writeFileSync(filePath, response.data);
-
-    res.json({ 
-      success: true, 
-      imageUrl: `/outputs/${filename}` 
-    });
-  } catch (err) {
-    console.error("Image generation error:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to generate image" });
-  }
-});
 
 // Basic route
 app.get("/", (req, res) => {

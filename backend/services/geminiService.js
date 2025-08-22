@@ -1,20 +1,34 @@
 const axios = require("axios");
 
-async function generateMermaidDiagram(description) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-  const prompt = `Generate mermaid.js code for this diagram: ${description}`;
+// Lightweight slide generator (local/template). Replace with real Gemini calls later if you have an API.
+module.exports = {
+  generateSlidesForTopic: async (topic) => {
+    // produce 4 slides: Intro, Key concepts, Examples, Summary
+    const base = [
+      {
+        title: `Introduction to ${topic}`,
+        content: `Welcome. In this video we will cover the basics of ${topic} and why it matters.`,
+        duration: 7
+      },
+      {
+        title: `Key Concepts of ${topic}`,
+        content: `Here are the core ideas: explain 2-3 main concepts in clear, concise language for learners.`,
+        duration: 8
+      },
+      {
+        title: `Real-world Examples`,
+        content: `Practical examples and applications of ${topic} in everyday life and industry.`,
+        duration: 8
+      },
+      {
+        title: `Summary & Next Steps`,
+        content: `Quick summary and suggestions for further learning about ${topic}.`,
+        duration: 6
+      },
+    ];
 
-  const response = await axios.post(`${endpoint}?key=${apiKey}`, {
-    contents: [{ parts: [{ text: prompt }] }],
-  });
-
-  // Extract mermaid code block if present
-  const text = response.data.candidates[0].content.parts[0].text;
-  const match = text.match(/```mermaid\s*([\s\S]*?)```/i);
-  return match ? match[1].trim() : text.trim();
-}
-
-module.exports = { generateMermaidDiagram };
+    // Optionally you can expand these with more dynamic content or call an LLM later.
+    return base;
+  },
+};
 

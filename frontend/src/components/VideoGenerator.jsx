@@ -1,102 +1,117 @@
 import React, { useState } from "react";
-
-const HF_API_KEY = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+import { useTheme } from "../context/ThemeContext";
 
 const VideoGenerator = () => {
-  const [loadingMessage, setLoadingMessage] = useState("");
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [generatedVideo, setGeneratedVideo] = useState(null);
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState("");
+  const { isDark } = useTheme();
 
-  // Generic Hugging Face fetcher
-  const huggingFaceApi = async (model, payload, isJson = true) => {
-    const url = `https://api-inference.huggingface.co/models/${model}`;
-    console.log(`🔄 Calling HuggingFace API: ${url}`);
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${HF_API_KEY}`,
-          ...(isJson ? { "Content-Type": "application/json" } : {}),
-        },
-        body: isJson ? JSON.stringify(payload) : payload,
-      });
-
-      if (!response.ok) {
-        throw new Error(`❌ HuggingFace API error: ${response.status} ${response.statusText}`);
-      }
-
-      return response;
-    } catch (err) {
-      console.error("🚨 HuggingFace API call failed:", err.message);
-      throw err;
+  const createTopicVideo = async () => {
+    if (!topic.trim()) {
+      setError("Please enter a topic");
+      return;
     }
-  };
-
-  // ✅ Text-to-Speech (no gated model)
-  const generateAudio = async (text) => {
-    setLoadingMessage("🎤 Generating audio...");
+    setError("");
+    setProgress("Initializing...");
+    setLoading(true);
     try {
-      const response = await huggingFaceApi(
-        "facebook/mms-tts-eng", // ✅ Open-access English TTS
-        { inputs: text }
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_NODE_BASE_API_URL
+        }/api/video/create-topic-video`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+          body: JSON.stringify({ topic }),
+        }
       );
-      const blob = await response.blob();
-      setAudioUrl(URL.createObjectURL(blob));
-    } catch (err) {
-      alert("Audio generation failed. Check console for details.");
-    } finally {
-      setLoadingMessage("");
-    }
-  };
-
-  // ✅ Image Generation (open Stable Diffusion model)
-  const generateImage = async (prompt) => {
-    setLoadingMessage("🎨 Generating image...");
-    try {
-      const response = await huggingFaceApi(
-        "stabilityai/stable-diffusion-2", // ✅ Open version (not gated)
-        { inputs: prompt }
+      const data = await res.json();
+      if (!data.success)
+        throw new Error(data.message || data.error || "Failed");
+      setGeneratedVideo(
+        `${import.meta.env.VITE_NODE_BASE_API_URL}${data.videoUrl}`
       );
-      const blob = await response.blob();
-      setImageUrl(URL.createObjectURL(blob));
+      setProgress(`Video ready — ${data.slides} slides`);
     } catch (err) {
-      alert("Image generation failed. Check console for details.");
+      setError(String(err.message || err));
+      setProgress("");
     } finally {
-      setLoadingMessage("");
+      setLoading(false);
     }
   };
 
-  // Example test run
-  const handleGenerate = async () => {
-    await generateAudio("Hello! This is your AI video generator speaking.");
-    await generateImage("A futuristic cyberpunk city with neon lights at night");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createTopicVideo();
   };
 
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-xl font-bold">🎬 AI Video Generator</h2>
-      {loadingMessage && <p className="text-blue-500">{loadingMessage}</p>}
+    <div
+      className={`min-h-screen p-6 ${
+        isDark
+          ? "bg-neutral-900 text-neutral-50"
+          : "bg-neutral-50 text-neutral-900"
+      }`}
+    >
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-4">AI Video Generator</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Enter topic (e.g., Photosynthesis)"
+            className="w-full p-3 rounded border"
+            disabled={loading}
+          />
+          <div className="flex gap-3">
+            <button
+              disabled={loading}
+              className="px-4 py-2 bg-indigo-600 text-white rounded"
+            >
+              {loading ? "Generating..." : "Generate Video"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTopic("");
+                setGeneratedVideo(null);
+                setError("");
+                setProgress("");
+              }}
+              className="px-4 py-2 border rounded"
+            >
+              Reset
+            </button>
+          </div>
+        </form>
 
-      <button
-        onClick={handleGenerate}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Generate Audio & Image
-      </button>
+        {progress && (
+          <div className="mt-4 text-sm text-indigo-600">{progress}</div>
+        )}
+        {error && (
+          <div className="mt-4 text-sm text-red-600">Error: {error}</div>
+        )}
 
-      {audioUrl && (
-        <div>
-          <h3 className="font-semibold mt-4">🔊 Generated Audio:</h3>
-          <audio controls src={audioUrl} />
-        </div>
-      )}
-
-      {imageUrl && (
-        <div>
-          <h3 className="font-semibold mt-4">🖼️ Generated Image:</h3>
-          <img src={imageUrl} alt="Generated" className="rounded-lg shadow-md w-96" />
-        </div>
-      )}
+        {generatedVideo && (
+          <div className="mt-6">
+            <video src={generatedVideo} controls className="w-full rounded" />
+            <a
+              className="inline-block mt-3 px-4 py-2 bg-green-600 text-white rounded"
+              href={generatedVideo}
+              download
+            >
+              Download
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
