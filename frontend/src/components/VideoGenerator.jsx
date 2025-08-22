@@ -54,13 +54,9 @@ const VideoGenerator = () => {
 
   return (
     <div
-      className={`min-h-screen p-6 ${
-        isDark
-          ? "bg-neutral-900 text-neutral-50"
-          : "bg-neutral-50 text-neutral-900"
-      }`}
+      className={`min-h-screen p-6`}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-4">AI Video Generator</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
