@@ -46,7 +46,7 @@ const Footer = () => {
               ${isDark ? "text-[#f8f8f8]/60" : "text-[#080808]/60"}
             `}
           >
-            © 2025 BharatAI. All rights reserved.
+            © 2025 StudyAid. All rights reserved.
           </motion.p>
 
           <motion.p

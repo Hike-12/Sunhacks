@@ -68,7 +68,7 @@ app.use("/api/video", videoRoutes); // NEW: Use the video route
 
 // Basic route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to BharatAI API" });
+  res.json({ message: "Welcome to StudyAid API" });
 });
 
 // Health check route
