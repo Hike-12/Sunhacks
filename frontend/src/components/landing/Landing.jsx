@@ -13,7 +13,7 @@ const Landing = () => {
 
   
   return (
-    <ThemeProvider>
+    
       <div className="min-h-screen transition-colors duration-300">
         <Navbar />
         <HeroSection />
@@ -23,7 +23,7 @@ const Landing = () => {
         {/* <CTASection ref={ctaRef} /> */}
         <Footer />
       </div>
-    </ThemeProvider>
+    
   );
 };
 
