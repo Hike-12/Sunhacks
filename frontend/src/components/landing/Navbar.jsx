@@ -59,7 +59,7 @@ const Navbar = () => {
                   : "bg-gradient-to-r from-[#222052] to-[#222052]/80 bg-clip-text text-transparent"
               }`}
             >
-              StudyGenie
+              StudyAid
             </span>
           </motion.div>
 

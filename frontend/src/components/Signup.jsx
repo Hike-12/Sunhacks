@@ -215,19 +215,20 @@ const Signup = () => {
       }`}
     >
       <div className="w-full max-w-md">
-        <div className="flex flex-row items-center justify-center gap-3 mb-4">
+        <div className="flex flex-row items-center justify-center gap-4 mb-4">
           <img
             src="/logo.png"
             alt="StudyGenie Logo"
             className="w-10 h-10 rounded-lg"
           />
+          <Link to="/" >
           <h1
-            className={`text-xl font-bold ${
+            className={`text-2xl font-bold ${
               isDark ? "text-[#f8f8f8]" : "text-[#222052]"
             }`}
           >
-            StudyGenie
-          </h1>
+            StudyAid
+          </h1></Link>
         </div>
         <div
           className={`
@@ -298,16 +299,6 @@ const Signup = () => {
               )}
             </div>
             <div className="text-center mt-4 flex justify-between">
-              <Link
-                to="/"
-                className={`underline underline-offset-2 ${
-                  isDark
-                    ? "text-[#a78bfa] hover:text-[#f8f8f8]"
-                    : "text-[#7c3aed] hover:text-[#222052]"
-                } transition-colors`}
-              >
-                &larr; Back to Home
-              </Link>
               <Link
                 to="/login"
                 className={`underline underline-offset-2 ${

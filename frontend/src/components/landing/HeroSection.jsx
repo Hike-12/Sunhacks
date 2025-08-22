@@ -39,7 +39,7 @@ const HeroSection = () => {
           >
             Learning
           </span>{" "}
-          with StudyAI-d
+          with StudyAid
         </h1>
         <p
           className={`
