@@ -89,7 +89,7 @@ const StudentDashboard = () => {
 
     const parsedUser = JSON.parse(userData);
     if (parsedUser.role !== "student") {
-      navigate("/teacher-dashboard");
+      navigate("/dashboard");
       return;
     }
 
