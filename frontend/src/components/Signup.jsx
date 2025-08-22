@@ -215,21 +215,20 @@ const Signup = () => {
       }`}
     >
       <div className="w-full max-w-md">
-        <div className="flex flex-row items-center justify-center gap-4 mb-4">
+        <Link to="/" className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer">
           <img
             src="/logo.png"
             alt="StudyGenie Logo"
             className="w-10 h-10 rounded-lg"
           />
-          <Link to="/" >
           <h1
-            className={`text-2xl font-bold ${
+            className={`text-xl font-bold ${
               isDark ? "text-[#f8f8f8]" : "text-[#222052]"
             }`}
           >
             StudyAid
-          </h1></Link>
-        </div>
+          </h1>
+        </Link>
         <div
           className={`
             ${
