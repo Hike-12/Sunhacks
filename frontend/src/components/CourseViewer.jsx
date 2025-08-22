@@ -55,6 +55,8 @@ const CourseViewer = () => {
   const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [quizExplanation, setQuizExplanation] = useState(""); // NEW
+  const [isSubmittingQuiz, setIsSubmittingQuiz] = useState(false); // Add this state
+
 
   useEffect(() => {
     fetchCourseContent();
@@ -414,56 +416,51 @@ const CourseViewer = () => {
   };
 
   const handleQuizSubmit = async () => {
-    const score = calculateQuizScore();
-    const totalQuestions = quizData.questions.length;
-    const percentage = (score / totalQuestions) * 100;
+  const score = calculateQuizScore();
+  const totalQuestions = quizData.questions.length;
+  const percentage = (score / totalQuestions) * 100;
 
-    try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_NODE_BASE_API_URL
-        }/api/courses/${courseId}/quiz-result`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            quizId: quizData.id,
-            score: score,
-            percentage: percentage,
-            answers: quizAnswers,
-          }),
-        }
-      );
+  setIsSubmittingQuiz(true); // Start loader
 
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success(
-          `
-            Quiz completed! Score: ${score}/${totalQuestions} (
-            ${percentage.toFixed(1)}%)
-          `
-        );
-        setQuizExplanation(data.explanation || ""); // Show explanation
-        setShowQuiz(false); // Hide quiz modal
-        setQuizAnswers({});
-        // Don't move to next slide yet, wait for user to click button
-      } else {
-        console.error("Quiz submission failed:", data);
-        toast.error(
-          data.message || `Failed to submit quiz`
-        );
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_NODE_BASE_API_URL}/api/courses/${courseId}/quiz-result`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          quizId: quizData.id,
+          score: score,
+          percentage: percentage,
+          answers: quizAnswers,
+        }),
       }
-    } catch (error) {
-      console.error("Quiz submission error:", error);
-      toast.error(
-        `Failed to submit quiz - network error`
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      toast.success(
+        `Quiz completed! Score: ${score}/${totalQuestions} (${percentage.toFixed(1)}%)`
       );
+      setQuizExplanation(data.explanation || "");
+      setShowQuiz(false);
+      setQuizAnswers({});
+    } else {
+      console.error("Quiz submission failed:", data);
+      toast.error(data.message || `Failed to submit quiz`);
     }
-  };
+  } catch (error) {
+    console.error("Quiz submission error:", error);
+    toast.error(`Failed to submit quiz - network error`);
+  } finally {
+    setIsSubmittingQuiz(false); // End loader
+  }
+};
+
 
   const handleQuizNextSlide = async () => {
     setQuizExplanation("");
@@ -706,7 +703,7 @@ const CourseViewer = () => {
                 : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
             } text-white rounded-lg font-medium`}
           >
-            `Back to Dashboard`
+            Back to Dashboard
           </motion.button>
         </div>
       </div>
@@ -737,7 +734,7 @@ const CourseViewer = () => {
                   : "bg-[#7c3aed] hover:bg-[#6d28d9] text-white"
               } rounded-lg`}
             >
-              ← `Back to Dashboard`
+              ← Back to Dashboard
             </motion.button>
           </div>
 
@@ -1089,7 +1086,7 @@ const CourseViewer = () => {
                     : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
                 } text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                `Submit Quiz`
+                Submit Quiz
               </motion.button>
             </div>
           </motion.div>
