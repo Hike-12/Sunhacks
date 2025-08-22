@@ -17,11 +17,9 @@ const navItems = [
   { key: "overview", label: "Overview", icon: <FaHome /> },
   { key: "courses", label: "Courses", icon: <FaBook /> },
   { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
-   { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
    { key: "viva-preperation", label: "Viva Preparation", icon: <FaLanguage /> },
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
   { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
-  { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
   { key: "video-generator", label: "AI Video Generator", icon: <FaVideo /> },
 ];
 

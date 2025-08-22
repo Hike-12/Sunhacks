@@ -109,7 +109,7 @@ const VideoGenerator = () => {
             
             // Send all assets to the backend for assembly
             setLoadingMessage('Assembling video on server...');
-            const response = await fetch('http://localhost:5000/api/video/assemble', {
+            const response = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/api/video/assemble`, {
                 method: 'POST',
                 body: formData, // No 'Content-Type' header needed, browser sets it for FormData
             });
