@@ -14,6 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
+import TeacherCommunity from "./TeacherCommunity";
 import AchievementSection from "./Achievements";
 import DoubtSolverChatbot from "./Chatbot";
 
@@ -94,6 +95,12 @@ const TeacherDashboard = () => {
       onClick: () => setActiveTab("courses"),
     },
     {
+      id: "community",
+      label: "Community",
+      active: activeTab === "community",
+      onClick: () => setActiveTab("community"),
+    },
+    {
       id: "analytics",
       label: "Analytics",
       active: activeTab === "analytics",
@@ -128,6 +135,8 @@ const TeacherDashboard = () => {
         return <Courses setActiveTab={setActiveTab} />;
       case "create-course":
         return <CreateCourse setActiveTab={setActiveTab} />;
+      case "community":
+        return <TeacherCommunity />;
       case "analytics":
         return <Analytics />;
       case "achievements":
@@ -135,7 +144,7 @@ const TeacherDashboard = () => {
       case "doubt-solver":
         return <DoubtSolverChatbot />;
       case "viva-preperation":
-        return <InterviewPrep />
+        return <InterviewPrep />;
       case "flashcard-generator":
         return <FlashcardGenerator />;
       case "study-flow":
