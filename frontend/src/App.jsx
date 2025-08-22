@@ -33,13 +33,13 @@ function App() {
         <Route path="/student-stats" element={<StudentStats />} />
         <Route path="/my-achievements" element={<MyAchievements />} />
         <Route path="/achievements" element={<AllAchievements />} />
-        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+        <Route path="/dashboard" element={<TeacherDashboard />} />
         <Route path="/create-course" element={<CreateCourse />} />
         <Route path="/pdf-translator" element={<PDFTranslator />} />
         <Route path="/" element={<Landing />} />
-        <Route path="/teacher/courses/:courseId/edit" element={<CourseEditor />} />
-        <Route path="/teacher/courses/:courseId/view" element={<TeacherCourseViewer />} />
-        <Route path="/teacher/courses/:courseId/take" element={<CourseViewer />} />
+        <Route path="/courses/:courseId/edit" element={<CourseEditor />} />
+        <Route path="/courses/:courseId/view" element={<TeacherCourseViewer />} />
+        <Route path="/courses/:courseId/take" element={<CourseViewer />} />
       </Routes>
     </Router>
     </ThemeProvider>
