@@ -11,6 +11,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const pdfRoutes = require("./routes/pdfRoutes");
 const interviewRoutes = require('./routes/interviewRoutes');
 const teacherAnalyticsRoutes = require('./routes/teacherAnalyticsRoutes');
+const coachRoutes = require('./routes/coachRoutes');  
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +46,7 @@ app.use("/api/chat", chatRoutes);
 app.use('/interview',interviewRoutes);
 app.use("/api/tools", pdfRoutes);
 app.use('/api/teacher', teacherAnalyticsRoutes);
+app.use('/api/coach', coachRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
