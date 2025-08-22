@@ -21,6 +21,7 @@ import CourseEditor from './components/teacher/CourseEditor';
 import { ThemeProvider } from "./context/ThemeContext";
 import WikipediaShorts, { WikipediaShortsLauncher } from "./components/TikTok";
 
+import PomodoroDial from "./components/Pomodoro";
 function App() {
   return (
       <ThemeProvider>
@@ -40,6 +41,7 @@ function App() {
         <Route path="/courses/:courseId/edit" element={<CourseEditor />} />
         <Route path="/courses/:courseId/view" element={<TeacherCourseViewer />} />
         <Route path="/courses/:courseId/take" element={<CourseViewer />} />
+        <Route path="/pomo" element={<PomodoroDial />} />
       </Routes>
     </Router>
     </ThemeProvider>
