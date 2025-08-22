@@ -39,6 +39,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/teacher/courses/:courseId/edit" element={<CourseEditor />} />
         <Route path="/teacher/courses/:courseId/view" element={<TeacherCourseViewer />} />
+        <Route path="/teacher/courses/:courseId/take" element={<CourseViewer />} />
       </Routes>
     </Router>
     </ThemeProvider>

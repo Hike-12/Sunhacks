@@ -239,6 +239,18 @@ const Courses = ({ setActiveTab }) => {
                   >
                     <FaEye /> View
                   </button>
+                  <button
+    onClick={() =>
+      navigate(`/teacher/courses/${course.id || course._id}/take`)
+    }
+    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border ${
+      isDark 
+        ? 'bg-green-900/50 text-green-300 hover:bg-green-800/50 border-green-800 hover:border-green-700' 
+        : 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200 hover:border-green-300'
+    }`}
+  >
+    <FaUserGraduate /> Take Course
+  </button>
                   {course.isPrivate && course.courseCode && (
                     <button
                       onClick={() =>
