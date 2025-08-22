@@ -297,7 +297,17 @@ const Signup = () => {
                 </button>
               )}
             </div>
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 flex justify-between">
+              <Link
+                to="/"
+                className={`underline underline-offset-2 ${
+                  isDark
+                    ? "text-[#a78bfa] hover:text-[#f8f8f8]"
+                    : "text-[#7c3aed] hover:text-[#222052]"
+                } transition-colors`}
+              >
+                &larr; Back to Home
+              </Link>
               <Link
                 to="/login"
                 className={`underline underline-offset-2 ${
