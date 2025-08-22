@@ -807,9 +807,9 @@ const InterviewPrep = () => {
                   variant={isSelected ? "default" : "outline"}
                   className={`w-full justify-start ${
                     isSelected
-                      ? "bg-blue-100 text-primary border-primary"
-                      : "bg-white text-black border-gray-200"
-                  } hover:bg-blue-100 transition-colors`}
+                      ? "bg-black text-primary border-primary"
+                      : "bg-black text-black border-gray-200"
+                  } hover:bg-zinc-800 text-purple-300 transition-colors`}
                   onClick={() => setSelectedJob(job)}
                 >
                   <span className="font-semibold">{job.company_name}</span>
