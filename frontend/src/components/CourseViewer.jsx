@@ -54,6 +54,7 @@ const CourseViewer = () => {
   const [currentLanguage, setCurrentLanguage] = useState("English");
   const [isUpdatingLanguage, setIsUpdatingLanguage] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [quizExplanation, setQuizExplanation] = useState(""); // NEW
 
   useEffect(() => {
     fetchCourseContent();
@@ -194,10 +195,8 @@ const CourseViewer = () => {
       if (timeSpentMinutes <= 0) return;
 
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_NODE_BASE_API_URL
-          }/api/courses/${courseId}/study-time`,
+        await fetch(
+          `${import.meta.env.VITE_NODE_BASE_API_URL}/api/courses/${courseId}/study-time`,
           {
             method: "PUT",
             headers: {
@@ -444,27 +443,14 @@ const CourseViewer = () => {
       if (data.success) {
         toast.success(
           `
-            Quiz completed! Score: {score}/{totalQuestions} (
-            {percentage.toFixed(1)}%)
+            Quiz completed! Score: ${score}/${totalQuestions} (
+            ${percentage.toFixed(1)}%)
           `
         );
-
-        // Move to next slide after quiz completion
-        const nextSlideIndex = currentSlide + 1;
-        if (nextSlideIndex < flattenedContent.length) {
-          setCurrentSlide(nextSlideIndex);
-          await updateProgress(nextSlideIndex);
-        } else {
-          // Course completed
-          await markCourseAsCompleted();
-          toast.success(
-            `🎉 Course completed! Well done!`
-          );
-          navigate("/student-dashboard");
-        }
-
-        setShowQuiz(false);
+        setQuizExplanation(data.explanation || ""); // Show explanation
+        setShowQuiz(false); // Hide quiz modal
         setQuizAnswers({});
+        // Don't move to next slide yet, wait for user to click button
       } else {
         console.error("Quiz submission failed:", data);
         toast.error(
@@ -476,6 +462,22 @@ const CourseViewer = () => {
       toast.error(
         `Failed to submit quiz - network error`
       );
+    }
+  };
+
+  const handleQuizNextSlide = async () => {
+    setQuizExplanation("");
+    const nextSlideIndex = currentSlide + 1;
+    if (nextSlideIndex < flattenedContent.length) {
+      setCurrentSlide(nextSlideIndex);
+      await updateProgress(nextSlideIndex);
+    } else {
+      // Course completed
+      await markCourseAsCompleted();
+      toast.success(
+        `🎉 Course completed! Well done!`
+      );
+      navigate("/student-dashboard");
     }
   };
 
@@ -847,7 +849,41 @@ const CourseViewer = () => {
 
       {/* Content Area */}
       <main className="max-w-4xl mx-auto py-8 px-4">
-        {!showQuiz ? (
+        {/* Show explanation after quiz submit */}
+        {quizExplanation ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className={`${
+              isDark ? "bg-[#181818] border-[#333]" : "bg-white border-gray-200"
+            } border rounded-xl shadow-lg p-6`}
+          >
+            <h2
+              className={`text-2xl font-bold ${
+                isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
+              } mb-4 text-center`}
+            >
+              Quiz Explanation
+            </h2>
+            <div className="mb-6 text-lg">
+              {quizExplanation}
+            </div>
+            <div className="flex justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleQuizNextSlide}
+                className={`px-8 py-3 ${
+                  isDark
+                    ? "bg-[#7c3aed] hover:bg-[#6d28d9]"
+                    : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
+                } text-white rounded-lg font-medium`}
+              >
+                Next Slide →
+              </motion.button>
+            </div>
+          </motion.div>
+        ) : !showQuiz ? (
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0, x: 50 }}
@@ -885,7 +921,7 @@ const CourseViewer = () => {
                       isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                     } mb-4`}
                   >
-                    📹 `Videos`
+                    📹 Videos
                   </h3>
                   {currentContent.videoUrls.map((url, index) => (
                     <div key={index} className="mb-4">
@@ -904,7 +940,7 @@ const CourseViewer = () => {
                       isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                     } mb-4`}
                   >
-                    🖼️ `Images`
+                    🖼️ Images
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {currentContent.imageUrls.map((url, index) => (
@@ -924,7 +960,7 @@ const CourseViewer = () => {
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                   } mb-4`}
                 >
-                  📊 `Diagram`
+                  📊 Diagram
                 </h3>
                 <MermaidDiagram code={currentContent.mermaid} />
               </div>
@@ -943,7 +979,7 @@ const CourseViewer = () => {
                     : "border-[#7c3aed] text-[#7c3aed] hover:bg-[#f3f0ff]"
                 } rounded-lg disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                ← `Previous`
+                ← Previous
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}

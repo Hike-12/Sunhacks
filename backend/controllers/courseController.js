@@ -4,6 +4,7 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const Progress = require("../models/Progress");
 const GroqCourseGenerator = require("../services/groqService");
+const fetch = require("node-fetch");
 
 // Configure multer for file upload
 const storage = multer.memoryStorage();
@@ -631,21 +632,15 @@ const getCourseContent = async (req, res) => {
 const getUserProgress = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const studentId = req.userId;
-    const progresses = await Progress.find({ student: studentId }).populate({
-      path: "course",
-      select: "title description category language tags content",
-    });
-    const progress = await Progress.findOne({
-      student: studentId,
-      course: courseId,
-    });
+    const userId = req.userId;
 
+    // Try to find existing progress
+    let progress = await Progress.findOne({ user: userId, course: courseId });
+
+    // If none, create a default progress record (allows teachers to have progress)
     if (!progress) {
-      return res.status(404).json({
-        success: false,
-        message: "Progress not found",
-      });
+      progress = new Progress({ user: userId, course: courseId });
+      await progress.save();
     }
 
     res.json({
@@ -664,65 +659,41 @@ const getUserProgress = async (req, res) => {
     });
   }
 };
-
 // Update user progress
 const updateProgress = async (req, res) => {
   console.log("Updating progress...");
   try {
     const { courseId } = req.params;
     let { currentSlide, completedSlides } = req.body;
-    const studentId = req.userId;
+    const userId = req.userId;
 
-    // Get the course to know the number of slides
+    // Get course to compute totalSlides
     const course = await Course.findById(courseId);
     let totalSlides = 1;
-
-    console.log("Course found:", course ? course.title : "No course found");
-
     if (course && course.contentTree && Array.isArray(course.contentTree)) {
-      // Use saved contentTree
       totalSlides = countTotalSlides(course.contentTree);
-      console.log("Total slides from contentTree:", totalSlides);
     }
 
     // Clamp values
     currentSlide = Math.max(0, Math.min(currentSlide, totalSlides - 1));
     completedSlides = Math.max(0, Math.min(completedSlides, totalSlides));
 
-    console.log("Clamped values:", {
-      currentSlide,
-      completedSlides,
-      totalSlides,
-    });
-
+    // Use upsert so a missing Progress is created for teachers too
     const progress = await Progress.findOneAndUpdate(
-      { student: studentId, course: courseId },
+      { user: userId, course: courseId },
       {
-        currentSlide,
-        completedSlides,
-        lastAccessedAt: new Date(),
+        $set: {
+          currentSlide,
+          completedSlides,
+          lastAccessedAt: new Date(),
+        },
+        $setOnInsert: { totalStudyTime: 0 }
       },
-      { new: true }
+      { new: true, upsert: true, setDefaultsOnInsert: true }
     );
-
-    if (!progress) {
-      return res.status(404).json({
-        success: false,
-        message: "Progress not found",
-      });
-    }
 
     // Calculate progress percentage
-    const progressPercentage = Math.round(
-      (completedSlides / totalSlides) * 100
-    );
-
-    console.log("Progress updated:", {
-      currentSlide,
-      completedSlides,
-      totalSlides,
-      progressPercentage,
-    });
+    const progressPercentage = Math.round((completedSlides / totalSlides) * 100);
 
     res.json({
       success: true,
@@ -745,7 +716,7 @@ const updateStudyTime = async (req, res) => {
   try {
     const { courseId } = req.params;
     const { timeSpent } = req.body; // in minutes
-    const studentId = req.userId;
+    const userId = req.userId;
 
     if (!timeSpent || timeSpent <= 0) {
       return res.status(400).json({
@@ -755,7 +726,7 @@ const updateStudyTime = async (req, res) => {
     }
 
     const progress = await Progress.findOneAndUpdate(
-      { student: studentId, course: courseId },
+      { user: userId, course: courseId },
       { 
         $inc: { totalStudyTime: timeSpent },
         lastAccessedAt: new Date()
@@ -793,36 +764,60 @@ const submitQuizResult = async (req, res) => {
   try {
     const { courseId } = req.params;
     const { quizId, score, percentage, answers } = req.body;
-    const studentId = req.userId;
+    const userId = req.userId;
 
-    const progress = await Progress.findOne({
-      student: studentId,
-      course: courseId,
-    });
-
+    let progress = await Progress.findOne({ user: userId, course: courseId });
     if (!progress) {
-      return res.status(404).json({
-        success: false,
-        message: "Progress not found",
-      });
+      progress = new Progress({ user: userId, course: courseId });
     }
 
-    // Add quiz result
     progress.quizResults.push({
       quizId,
       score,
-      totalQuestions: Object.keys(answers).length,
+      totalQuestions: Object.keys(answers || {}).length,
       percentage,
       answers,
     });
 
     await progress.save();
 
+    // --- Direct Groq API call using a normal model ---
+    let explanation = "";
+    try {
+      const groqApiKey = process.env.GROQ_API_KEY;
+      const prompt = `Explain the answers for quiz ${quizId}: ${JSON.stringify(answers)}`;
+      const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${groqApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192", // Use a normal Groq model
+          messages: [
+            { role: "system", content: "You are an expert tutor." },
+            { role: "user", content: prompt }
+          ],
+          max_tokens: 256,
+        }),
+      });
+      const groqData = await groqResponse.json();
+      console.log("Groq API response:", groqData);
+      explanation =
+        groqData.choices?.[0]?.message?.content ||
+        "Explanation could not be generated.";
+    } catch (err) {
+      console.error("Groq API error:", err);
+      explanation = "Explanation could not be generated.";
+    }
+
     res.json({
       success: true,
       message: "Quiz result submitted successfully",
+      explanation,
     });
   } catch (error) {
+    console.log("Error submitting quiz result:", error);
     res.status(500).json({
       success: false,
       message: error.message,
