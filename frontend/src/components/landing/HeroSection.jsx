@@ -11,7 +11,7 @@ const HeroSection = () => {
   const tabs = [
     { id: "study-flow", label: "Personalized Study Flow", image: "/StudyFlow.png" },
     { id: "flashcards", label: "Flashcards  ", image: "/FlashCards.png" },
-    { id: "quizzes", label: "Quizzes", image: "/quizzes.png" },
+    { id: "quizzes", label: "Quizzes", image: "/Quizzes.png" },
     { id: "dashboard", label: "Progress Dashboard", image: "/dashboard.png" },
   ];
 
