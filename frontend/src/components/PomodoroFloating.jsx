@@ -10,7 +10,7 @@ export default function PomodoroFloating() {
       {/* Floating Icon Button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed z-50 bottom-6 right-6 bg-emerald-500 hover:bg-emerald-400 text-black rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all"
+        className="fixed z-50 bottom-6 right-6 bg-indigo-500 hover:bg-blue-700 text-black rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all"
         style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.18)" }}
         aria-label="Open Pomodoro Timer"
       >
