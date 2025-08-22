@@ -543,58 +543,70 @@ const getEnrolledCourses = async (req, res) => {
 // Enroll in a public course
 const enrollInCourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
-    const studentId = req.userId;
+    const userId = req.userId || (req.user && req.user._id);
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    // Check if course exists and is public
+    const { courseId } = req.body;
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid courseId" });
+    }
+
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: "Course not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
-    if (course.isPrivate) {
-      return res.status(403).json({
-        success: false,
-        message: "This is a private course. Use course code to join.",
-      });
-    }
-
-    // Check if already enrolled
+    // prevent duplicate enrollment / progress documents
     const existingProgress = await Progress.findOne({
-      student: studentId,
+      user: userId,
       course: courseId,
     });
-
     if (existingProgress) {
-      return res.status(400).json({
-        success: false,
-        message: "Already enrolled in this course",
+      return res.json({
+        success: true,
+        message: "Already enrolled",
+        progress: existingProgress,
       });
     }
 
-    // Create progress record
+    // create progress record with user reference (fixes "user is required" validation error)
     const progress = new Progress({
-      student: studentId,
-      course: courseId,
+      user: mongoose.Types.ObjectId(userId),
+      course: mongoose.Types.ObjectId(courseId),
+      currentSection: 0,
+      currentTopic: 0,
+      completed: false,
+      startedAt: new Date(),
     });
+
     await progress.save();
 
-    // Add student to course's enrolled list
-    course.enrolledStudents.push(studentId);
-    await course.save();
+    // add user to course enrolled list if model stores it
+    if (Array.isArray(course.enrolledStudents)) {
+      if (
+        !course.enrolledStudents.find((id) => String(id) === String(userId))
+      ) {
+        course.enrolledStudents.push(userId);
+        await course.save();
+      }
+    }
 
-    res.json({
-      success: true,
-      message: "Successfully enrolled in course",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.json({ success: true, message: "Enrolled", progress });
+  } catch (err) {
+    console.error("Enroll error:", err);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Enrollment failed",
+        error: err.message,
+      });
   }
 };
 
@@ -951,7 +963,6 @@ const submitQuizResult = async (req, res) => {
       if (!quiz) {
         explanation = "Quiz data not found for explanation.";
       } else {
-        
         const prompt = `
 You are an expert tutor. For each quiz question below, respond in this format:
 
@@ -970,21 +981,24 @@ ${JSON.stringify(answers, null, 2)}
 Please respond for each question in the above format, one after another.
 `;
 
-        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${groqApiKey}`,
-          },
-          body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: [
-              { role: "system", content: "You are an expert tutor." },
-              { role: "user", content: prompt }
-            ],
-            max_tokens: 512,
-          }),
-        });
+        const groqResponse = await fetch(
+          "https://api.groq.com/openai/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${groqApiKey}`,
+            },
+            body: JSON.stringify({
+              model: "llama3-8b-8192",
+              messages: [
+                { role: "system", content: "You are an expert tutor." },
+                { role: "user", content: prompt },
+              ],
+              max_tokens: 512,
+            }),
+          }
+        );
         const groqData = await groqResponse.json();
         console.log("Groq API response:", groqData);
         explanation =

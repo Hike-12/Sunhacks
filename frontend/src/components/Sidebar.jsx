@@ -8,6 +8,7 @@ import {
   FaLanguage,
   FaBrain,
   FaRoute,
+  FaUsers,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -15,6 +16,7 @@ import { useTheme } from "../context/ThemeContext";
 const navItems = [
   { key: "overview", label: "Overview", icon: <FaHome /> },
   { key: "courses", label: "Courses", icon: <FaBook /> },
+  { key: "community", label: "Community", icon: <FaUsers /> },
   // { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
   { key: "viva-preperation", label: "Viva Preparation", icon: <FaLanguage /> },
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
