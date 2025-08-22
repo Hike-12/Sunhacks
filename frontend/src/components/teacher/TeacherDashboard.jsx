@@ -14,6 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
+import AchievementSection from "./Achievements";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -128,6 +129,8 @@ const TeacherDashboard = () => {
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "analytics":
         return <Analytics />;
+      case "achievements":
+        return <AchievementSection />;
       case "viva-preperation":
         return <InterviewPrep />
       case "flashcard-generator":
