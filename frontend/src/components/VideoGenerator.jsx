@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
-import { toast } from 'react-toastify'; // Make sure toast is imported
+import { toast } from 'react-toastify';
 
 const VideoGenerator = () => {
     const { isDark } = useTheme();
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
+    const [scenes, setScenes] = useState([]);
+    const [currentScene, setCurrentScene] = useState(0);
     const [loadingMessage, setLoadingMessage] = useState('');
-    const [finalVideoUrl, setFinalVideoUrl] = useState(''); // State for the final video
+    const [finalVideoUrl, setFinalVideoUrl] = useState('');
 
-    // --- API Functions (Gemini and Hugging Face) ---
-    // (These functions remain the same as in your provided code)
+    // --- API Functions ---
+
     const generateScript = async (topic) => {
         setLoadingMessage('Generating script with Gemini...');
         try {
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -29,8 +31,8 @@ const VideoGenerator = () => {
             );
             if (!response.ok) throw new Error(`Gemini API error: ${response.statusText}`);
             const data = await response.json();
-            const jsonText = data.candidates[0].content.parts[0].text.replace(/```json\n?|\n?```/g, '');
-            return JSON.parse(jsonText);
+            const jsonString = data.candidates[0].content.parts[0].text.replace(/```json\n?|\n?```/g, '');
+            return JSON.parse(jsonString);
         } catch (error) {
             console.error('Error generating script:', error);
             toast.error("Failed to generate script.");
@@ -52,19 +54,22 @@ const VideoGenerator = () => {
     };
 
     const generateAudio = async (text) => {
+        setLoadingMessage('Generating audio...');
         try {
-            const response = await huggingFaceApi("espnet/kan-bayashi_ljspeech_vits", { inputs: text });
+            // UPDATED MODEL
+            const response = await huggingFaceApi("microsoft/speecht5_tts", { inputs: text });
             return response.blob();
         } catch (error) {
             console.error('Error generating audio:', error);
-            toast.error("Audio generation failed for a scene.");
             return null;
         }
     };
 
     const generateImage = async (prompt) => {
+        setLoadingMessage('Generating images...');
         try {
-            const response = await huggingFaceApi("stabilityai/stable-diffusion-xl-base-1.0", { inputs: prompt });
+            // UPDATED MODEL
+            const response = await huggingFaceApi("runwayml/stable-diffusion-v1-5", { inputs: prompt });
             return response.blob();
         } catch (error) {
             console.error('Error generating image:', error);
@@ -72,14 +77,15 @@ const VideoGenerator = () => {
         }
     };
 
-    // --- Main Handler (Updated for Backend) ---
+    // --- Main Handler ---
+
     const handleGenerateVideo = async () => {
         if (!prompt.trim()) {
             toast.error("Please enter a topic.");
             return;
         }
         setLoading(true);
-        setFinalVideoUrl(''); // Reset previous video
+        setFinalVideoUrl('');
 
         const script = await generateScript(prompt);
         if (!script || !script.scenes) {
@@ -89,11 +95,9 @@ const VideoGenerator = () => {
 
         try {
             const formData = new FormData();
-            // Send scene metadata to the backend
             const sceneMetadata = script.scenes.map(s => ({ narration: s.narration }));
             formData.append('scenes', JSON.stringify(sceneMetadata));
 
-            // Generate assets and append them to FormData
             for (let i = 0; i < script.scenes.length; i++) {
                 const scene = script.scenes[i];
                 setLoadingMessage(`Generating assets for scene ${i + 1}...`);
@@ -107,11 +111,10 @@ const VideoGenerator = () => {
                 formData.append(`audio_${i}`, audioBlob, `audio_${i}.mp3`);
             }
             
-            // Send all assets to the backend for assembly
             setLoadingMessage('Assembling video on server...');
             const response = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/api/video/assemble`, {
                 method: 'POST',
-                body: formData, // No 'Content-Type' header needed, browser sets it for FormData
+                body: formData,
             });
 
             const result = await response.json();
@@ -157,7 +160,6 @@ const VideoGenerator = () => {
                  {loading && <p className={`text-center mt-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{loadingMessage}</p>}
             </div>
 
-            {/* Final Video Player */}
             {finalVideoUrl && !loading && (
                 <div className="mt-8">
                     <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
