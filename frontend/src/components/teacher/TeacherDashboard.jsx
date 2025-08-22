@@ -130,10 +130,10 @@ const TeacherDashboard = () => {
         return <Analytics />;
       case "viva-preperation":
         return <InterviewPrep />
-      // case "flashcard-generator":
+      case "flashcard-generator":
         return <FlashcardGenerator />;
       case "study-flow":
-      //   return <PersonalizedStudyFlow />;
+        return <PersonalizedStudyFlow />;
       case "pdf-translator":
         return <PDFTranslator />;
       default:
