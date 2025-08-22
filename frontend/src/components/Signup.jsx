@@ -34,7 +34,7 @@ const Signup = () => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     if (token && role === "teacher") {
-      navigate("/teacher-dashboard");
+      navigate("/dashboard");
     } else if (token && role === "student") {
       navigate("/student-dashboard");
     }
@@ -94,7 +94,7 @@ const Signup = () => {
         localStorage.setItem("role", data.user.role);
         toast.success("Account created successfully!");
         if (data.user.role === "teacher") {
-          navigate("/teacher-dashboard");
+          navigate("/dashboard");
         } else if (data.user.role === "student") {
           navigate("/student-dashboard");
         }
