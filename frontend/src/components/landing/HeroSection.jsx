@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const { isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState("summaries");
+  const [activeTab, setActiveTab] = useState("study-flow");
   const navigate = useNavigate();
 
   const tabs = [
-    { id: "study-flow", label: "Personalized Study Flow", image: "/studyFlow.png" },
-    { id: "flashcards", label: "Flashcards  ", image: "/flashcards.png" },
+    { id: "study-flow", label: "Personalized Study Flow", image: "/StudyFlow.png" },
+    { id: "flashcards", label: "Flashcards  ", image: "/FlashCards.png" },
     { id: "quizzes", label: "Quizzes", image: "/quizzes.png" },
     { id: "dashboard", label: "Progress Dashboard", image: "/dashboard.png" },
   ];
