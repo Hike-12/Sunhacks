@@ -45,7 +45,7 @@ const Login = () => {
         localStorage.setItem("role", data.user.role);
         toast.success("Welcome back!");
         if (data.user.role === "teacher") {
-          navigate("/teacher-dashboard");
+          navigate("/dashboard");
         } else if (data.user.role === "student") {
           navigate("/student-dashboard");
         } else {
