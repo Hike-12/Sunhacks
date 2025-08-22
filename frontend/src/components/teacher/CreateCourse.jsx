@@ -1,228 +1,320 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
+import { FiUpload, FiBook, FiPlus, FiX, FiZap, FiLoader } from "react-icons/fi";
 
-const categories = [
-  "Mathematics",
-  "Science",
-  "History",
-  "Literature",
-  "Computer Science",
-  "Engineering",
-  "Medicine",
-  "Other",
-];
-
-const languages = [
-  "English",
-  "Hindi",
-  "Marathi",
-  "Kannada",
-  "Bengali",
-  "Tamil",
-  "Telugu",
-  "Gujarati",
-];
-
-const CreateCourse = ({ setActiveTab }) => {
+const CreateCourse = () => {
   const { isDark } = useTheme();
-  const [user] = useState(() => {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : null;
-  });
-
-  const [courseData, setCourseData] = useState({
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     category: "",
     language: "English",
+    isPrivate: false,
+    password: "",
+    tags: [],
     estimatedTime: 60,
   });
   const [pdfFile, setPdfFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [courseCode, setCourseCode] = useState("");
-  const navigate = useNavigate();
+  const [currentTag, setCurrentTag] = useState("");
 
-  // PDF upload handler
-  const handleFileChange = (e) => {
+  const categories = [
+    "Programming",
+    "Design",
+    "Marketing",
+    "Business",
+    "Science",
+    "Math",
+    "Language",
+    "Music",
+    "Art",
+    "Other",
+  ];
+
+  const languages = [
+    "English",
+    "Hindi",
+    "Tamil",
+    "Telugu",
+    "Bengali",
+    "Marathi",
+    "Gujarati",
+    "Kannada",
+  ];
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handlePdfChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.type !== "application/pdf") {
-        toast.error("Please select a PDF file");
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size should be less than 10MB");
-        return;
-      }
+    if (file && file.type === "application/pdf") {
       setPdfFile(file);
+      toast.success("PDF file selected successfully!");
+    } else if (file) {
+      toast.error("Please select a valid PDF file");
+      e.target.value = "";
     }
   };
 
-  // Stepper navigation
-  const handleNext = () => {
-    if (step === 1) {
-      if (
-        !courseData.title ||
-        !courseData.description ||
-        !courseData.category
-      ) {
-        toast.error("Please fill in all required fields");
-        return;
-      }
-    } else if (step === 2) {
-      if (!pdfFile) {
-        toast.error("Please upload a PDF file");
-        return;
-      }
+  const addTag = () => {
+    if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        tags: [...prev.tags, currentTag.trim()],
+      }));
+      setCurrentTag("");
     }
-    setStep(step + 1);
   };
-  const handlePrev = () => setStep(step - 1);
 
-  // Submit handler (backend-aligned)
-  const handleSubmit = async () => {
-    setLoading(true);
+  const removeTag = (tagToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+    }));
+  };
+
+  const enhanceDescription = async () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Please enter title and description first");
+      return;
+    }
+
+    setEnhancing(true);
     try {
-      const formData = new FormData();
-      formData.append("title", courseData.title);
-      formData.append("description", courseData.description);
-      formData.append("category", courseData.category);
-      formData.append("language", courseData.language);
-      formData.append("pdf", pdfFile);
-      formData.append("estimatedTime", courseData.estimatedTime);
-
-      const token = localStorage.getItem("token");
       const response = await fetch(
-        `${import.meta.env.VITE_NODE_BASE_API_URL}/api/courses/create`,
+        `${
+          import.meta.env.VITE_NODE_BASE_API_URL
+        }/api/courses/enhance-description`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: formData,
+          body: JSON.stringify({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            language: formData.language,
+          }),
         }
       );
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        if (data.course && data.course.courseCode) {
-          setCourseCode(data.course.courseCode);
-          toast.success(
-            `Course created! Your course code is: ${data.course.courseCode}`,
-            { autoClose: 6000 }
-          );
-        } else {
-          toast.success("Course created successfully!");
+      if (data.success) {
+        setFormData((prev) => ({
+          ...prev,
+          description: data.enhancedDescription,
+        }));
+        toast.success("Description enhanced successfully!");
+      } else {
+        toast.error(data.message || "Failed to enhance description");
+      }
+    } catch (error) {
+      console.error("Enhancement error:", error);
+      toast.error("Failed to enhance description");
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.title || !formData.description) {
+      toast.error("Title and description are required");
+      return;
+    }
+
+    if (formData.isPrivate && !formData.password) {
+      toast.error("Password is required for private courses");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("language", formData.language);
+      formDataToSend.append("isPrivate", formData.isPrivate);
+      formDataToSend.append("estimatedTime", formData.estimatedTime);
+      formDataToSend.append("tags", JSON.stringify(formData.tags));
+
+      if (formData.isPrivate) {
+        formDataToSend.append("password", formData.password);
+      }
+
+      // PDF is now optional
+      if (pdfFile) {
+        formDataToSend.append("pdf", pdfFile);
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_NODE_BASE_API_URL}/api/courses`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formDataToSend,
         }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message);
         setTimeout(() => {
-          setActiveTab("courses");
-        }, 500);
+          navigate("/dashboard");
+        }, 2000);
       } else {
         toast.error(data.message || "Failed to create course");
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error("Course creation error:", error);
+      toast.error("Failed to create course. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Stepper UI
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+  return (
+    <div className={`min-h-screen ${isDark ? "bg-[#111]" : "bg-gray-50"}`}>
+      <div className="max-w-6xl mx-auto p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`${
+            isDark ? "bg-[#181818] border-[#333]" : "bg-white border-gray-200"
+          } border rounded-xl shadow-lg p-8`}
+        >
+          <h1
+            className={`text-3xl font-bold ${
+              isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+            } mb-8`}
           >
-            <div>
-              <h3
-                className={`text-2xl font-semibold mb-2 ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
-                Course Information
-              </h3>
-              <p className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                Provide basic details about your course
-              </p>
-            </div>
+            Create New Course
+          </h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Title */}
             <div>
               <label
-                className={`block mb-2 text-sm font-medium ${
+                className={`block text-sm font-medium ${
                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
+                } mb-2`}
               >
                 Course Title *
               </label>
               <input
                 type="text"
-                value={courseData.title}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, title: e.target.value })
-                }
-                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200
-                  ${
-                    isDark
-                      ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                      : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                  }`}
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border ${
+                  isDark
+                    ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                    : "border-gray-300 bg-white text-[#080808]"
+                }`}
                 placeholder="Enter course title"
                 required
               />
             </div>
+
+            {/* Description with enhance button */}
             <div>
-              <label
-                className={`block mb-2 text-sm font-medium ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
-                Description *
-              </label>
-              <textarea
-                value={courseData.description}
-                onChange={(e) =>
-                  setCourseData({ ...courseData, description: e.target.value })
-                }
-                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200 h-32 resize-none
-                  ${
-                    isDark
-                      ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                      : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                  }`}
-                placeholder="Describe your course content and objectives"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="flex items-center justify-between mb-2">
                 <label
-                  className={`block mb-2 text-sm font-medium ${
+                  className={`block text-sm font-medium ${
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                   }`}
                 >
-                  Category *
+                  Course Description *
+                </label>
+                <motion.button
+                  type="button"
+                  onClick={enhanceDescription}
+                  disabled={
+                    enhancing || !formData.title || !formData.description
+                  }
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-4 py-2 text-sm ${
+                    isDark
+                      ? "bg-[#7c3aed] hover:bg-[#6d28d9] text-white"
+                      : "bg-[#a78bfa] hover:bg-[#8b5cf6] text-white"
+                  } rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+                >
+                  {enhancing ? (
+                    <>
+                      <FiLoader className="animate-spin" />
+                      Enhancing...
+                    </>
+                  ) : (
+                    <>
+                      <FiZap />
+                      Enhance with AI
+                    </>
+                  )}
+                </motion.button>
+              </div>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows={6}
+                className={`w-full px-4 py-3 border ${
+                  isDark
+                    ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                    : "border-gray-300 bg-white text-[#080808]"
+                }`}
+                placeholder="Describe what students will learn in this course..."
+                required
+              />
+              <p
+                className={`text-xs mt-2 flex items-center gap-1 ${
+                  isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"
+                }`}
+              >
+                <FiZap size={12} />
+                Tip: Use the "Enhance with AI" button to automatically improve
+                your description!
+              </p>
+            </div>
+
+            {/* Category and Language */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  className={`block text-sm font-medium ${
+                    isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                  } mb-2`}
+                >
+                  Category
                 </label>
                 <select
-                  value={courseData.category}
-                  onChange={(e) =>
-                    setCourseData({ ...courseData, category: e.target.value })
-                  }
-                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200
-                    ${
-                      isDark
-                        ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                        : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                    }`}
-                  required
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border ${
+                    isDark
+                      ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                      : "border-gray-300 bg-white text-[#080808]"
+                  }`}
                 >
                   <option value="">Select Category</option>
                   {categories.map((category) => (
@@ -232,373 +324,267 @@ const CreateCourse = ({ setActiveTab }) => {
                   ))}
                 </select>
               </div>
+
               <div>
                 <label
-                  className={`block mb-2 text-sm font-medium ${
+                  className={`block text-sm font-medium ${
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                  }`}
+                  } mb-2`}
                 >
                   Language
                 </label>
                 <select
-                  value={courseData.language}
-                  onChange={(e) =>
-                    setCourseData({ ...courseData, language: e.target.value })
-                  }
-                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200
-                    ${
-                      isDark
-                        ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                        : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                    }`}
+                  name="language"
+                  value={formData.language}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border ${
+                    isDark
+                      ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                      : "border-gray-300 bg-white text-[#080808]"
+                  }`}
                 >
-                  {languages.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
+                  {languages.map((language) => (
+                    <option key={language} value={language}>
+                      {language}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
+
+            {/* PDF Upload (Optional) */}
             <div>
               <label
-                className={`block mb-2 text-sm font-medium ${
+                className={`block text-sm font-medium ${
                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
+                } mb-2`}
               >
-                Estimated Time (minutes) *
+                PDF Material (Optional)
+              </label>
+              <div
+                className={`border-2 border-dashed ${
+                  isDark
+                    ? "border-[#333] bg-[#222]"
+                    : "border-gray-300 bg-gray-50"
+                } rounded-lg p-6`}
+              >
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handlePdfChange}
+                  className="hidden"
+                  id="pdf-upload"
+                />
+                <label
+                  htmlFor="pdf-upload"
+                  className="cursor-pointer flex flex-col items-center"
+                >
+                  <FiUpload className="text-4xl mb-2" />
+                  <div
+                    className={`text-center ${
+                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                    }`}
+                  >
+                    <p className="font-medium">
+                      {pdfFile
+                        ? pdfFile.name
+                        : "Click to upload PDF (Optional)"}
+                    </p>
+                    <p
+                      className={`text-sm ${
+                        isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"
+                      } mt-1`}
+                    >
+                      Upload additional course material to enhance content
+                      generation
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label
+                className={`block text-sm font-medium ${
+                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                } mb-2`}
+              >
+                Tags
+              </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={currentTag}
+                  onChange={(e) => setCurrentTag(e.target.value)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" && (e.preventDefault(), addTag())
+                  }
+                  className={`flex-1 px-4 py-2 border ${
+                    isDark
+                      ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                      : "border-gray-300 bg-white text-[#080808]"
+                  }`}
+                  placeholder="Add a tag and press Enter"
+                />
+                <button
+                  type="button"
+                  onClick={addTag}
+                  className={`px-4 py-2 ${
+                    isDark
+                      ? "bg-[#7c3aed] hover:bg-[#6d28d9]"
+                      : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
+                  } text-white rounded-lg flex items-center gap-1`}
+                >
+                  <FiPlus />
+                  Add
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className={`px-3 py-1 ${
+                      isDark
+                        ? "bg-[#7c3aed]/20 text-[#a78bfa]"
+                        : "bg-[#a78bfa]/20 text-[#7c3aed]"
+                    } rounded-full text-sm flex items-center gap-2`}
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-red-500"
+                    >
+                      <FiX size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Estimated Time */}
+            <div>
+              <label
+                className={`block text-sm font-medium ${
+                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                } mb-2`}
+              >
+                Estimated Time (minutes)
               </label>
               <input
                 type="number"
-                min="15"
+                name="estimatedTime"
+                value={formData.estimatedTime}
+                onChange={handleInputChange}
+                min="10"
                 max="600"
-                value={courseData.estimatedTime}
-                onChange={(e) =>
-                  setCourseData({
-                    ...courseData,
-                    estimatedTime: parseInt(e.target.value) || "",
-                  })
-                }
-                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200
-                  ${
-                    isDark
-                      ? "bg-[#080808] text-[#f8f8f8] border-[#23234a]"
-                      : "bg-[#f8f8f8] text-[#080808] border-[#e5e7eb]"
-                  }`}
-                placeholder="60"
-                required
-              />
-              <p
-                className={`text-xs mt-1 ${
-                  isDark ? "text-[#aaa]" : "text-[#222]"
-                }`}
-              >
-                How long should this course take to complete?
-              </p>
-            </div>
-          </motion.div>
-        );
-      case 2:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div>
-              <h3
-                className={`text-2xl font-semibold mb-2 ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
-                Upload Course Material
-              </h3>
-              <p className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                Upload your course content as a PDF document
-              </p>
-            </div>
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
-              ${
-                isDark
-                  ? "border-[#7c3aed]/30 hover:border-[#a78bfa]/50"
-                  : "border-[#7c3aed]/30 hover:border-[#7c3aed]/50"
-              }`}
-            >
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleFileChange}
-                className="hidden"
-                id="pdf-upload"
-              />
-              <label htmlFor="pdf-upload" className="cursor-pointer">
-                <div className="mb-4">
-                  <svg
-                    className={`w-12 h-12 mx-auto ${
-                      isDark ? "text-[#a78bfa]/40" : "text-[#7c3aed]/40"
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                </div>
-                {pdfFile ? (
-                  <div className="space-y-2">
-                    <p
-                      className={`font-medium ${
-                        isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                      }`}
-                    >
-                      {pdfFile.name}
-                    </p>
-                    <p
-                      className={`text-sm ${
-                        isDark ? "text-[#aaa]" : "text-[#222]"
-                      }`}
-                    >
-                      {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                    <p
-                      className={`text-sm ${
-                        isDark ? "text-green-400" : "text-green-600"
-                      }`}
-                    >
-                      File ready for upload
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <p
-                      className={`font-medium ${
-                        isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                      }`}
-                    >
-                      Click to upload PDF file
-                    </p>
-                    <p
-                      className={`text-sm ${
-                        isDark ? "text-[#aaa]" : "text-[#222]"
-                      }`}
-                    >
-                      Maximum file size: 10MB
-                    </p>
-                  </div>
-                )}
-              </label>
-            </div>
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div>
-              <h3
-                className={`text-2xl font-semibold mb-2 ${
-                  isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                }`}
-              >
-                Review & Submit
-              </h3>
-              <p className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                Please review your course details before submitting.
-              </p>
-            </div>
-            <div
-              className={`rounded-lg p-6 border
-              ${
-                isDark
-                  ? "bg-[#080808] border-[#23234a]"
-                  : "bg-[#f8f8f8] border-[#e5e7eb]"
-              }`}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Title:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.title || "Not specified"}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Category:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.category || "Not specified"}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Language:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.language}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    File:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {pdfFile?.name || "No file selected"}
-                  </p>
-                </div>
-                <div>
-                  <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-                    Estimated Time:
-                  </span>
-                  <p
-                    className={`font-medium ${
-                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-                    }`}
-                  >
-                    {courseData.estimatedTime} minutes
-                  </p>
-                </div>
-              </div>
-            </div>
-            {courseCode && (
-              <div
-                className={`rounded-lg p-4 text-center font-semibold
-                ${
+                className={`w-full px-4 py-3 border ${
                   isDark
-                    ? "bg-green-900 text-green-200"
-                    : "bg-green-100 text-green-800"
+                    ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                    : "border-gray-300 bg-white text-[#080808]"
                 }`}
-              >
-                Your course code:{" "}
-                <span className="font-mono">{courseCode}</span>
-              </div>
-            )}
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
+              />
+            </div>
 
-  // Stepper progress bar
-  const renderStepper = () => (
-    <div className="flex items-center space-x-2 mb-8">
-      {[1, 2, 3].map((num) => (
-        <div key={num} className="flex items-center flex-1">
-          <div
-            className={`h-2 rounded-full flex-1 ${
-              step >= num
-                ? "bg-blue-600"
-                : isDark
-                ? "bg-[#23234a]"
-                : "bg-[#e5e7eb]"
-            }`}
-          />
-          {num < 3 && <div className="w-2" />}
-        </div>
-      ))}
-    </div>
-  );
+            {/* Private Course Settings */}
+            <div
+              className={`border ${
+                isDark ? "border-[#333]" : "border-gray-200"
+              } rounded-lg p-4`}
+            >
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isPrivate"
+                  checked={formData.isPrivate}
+                  onChange={handleInputChange}
+                  className="w-5 h-5 text-[#7c3aed] rounded focus:ring-[#7c3aed]"
+                />
+                <span
+                  className={`font-medium ${
+                    isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                  }`}
+                >
+                  Make this a private course
+                </span>
+              </label>
 
-  return (
-    <div className="max-w-2xl mx-auto py-8">
-      <div className="flex justify-between items-center mb-4">
-        <h1
-          className={`text-3xl font-bold ${
-            isDark ? "text-[#f8f8f8]" : "text-[#080808]"
-          }`}
-        >
-          Create New Course
-        </h1>
-        <span className={isDark ? "text-[#aaa]" : "text-[#222]"}>
-          Step {step} of 3
-        </span>
-      </div>
-      {renderStepper()}
-      <div
-        className={`rounded-lg p-6 md:p-8 shadow-lg border
-        ${
-          isDark
-            ? "bg-[#181818] border-[#23234a]"
-            : "bg-[#f8f8f8] border-[#e5e7eb]"
-        }`}
-      >
-        {renderStep()}
-        {/* Navigation Buttons */}
-        <div
-          className={`flex justify-between items-center mt-8 pt-6 border-t
-          ${isDark ? "border-[#23234a]" : "border-[#e5e7eb]"}
-        `}
-        >
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handlePrev}
-            disabled={step === 1 || loading}
-            className={`px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200
-              ${
-                isDark
-                  ? "bg-[#23234a] text-[#a78bfa] hover:bg-[#18182b]"
-                  : "bg-[#ece9ff] text-[#7c3aed] hover:bg-[#e0e7ff]"
-              }`}
-          >
-            Previous
-          </motion.button>
-          {step < 3 ? (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleNext}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium transition-all duration-200 hover:bg-blue-700"
-            >
-              Next Step
-            </motion.button>
-          ) : (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 transition-all duration-200 hover:bg-green-700"
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Creating Course...</span>
+              {formData.isPrivate && (
+                <div className="mt-4">
+                  <label
+                    className={`block text-sm font-medium ${
+                      isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                    } mb-2`}
+                  >
+                    Course Password *
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border ${
+                      isDark
+                        ? "border-[#333] bg-[#222] text-[#f8f8f8]"
+                        : "border-gray-300 bg-white text-[#080808]"
+                    }`}
+                    placeholder="Enter password for private course"
+                    required={formData.isPrivate}
+                  />
                 </div>
-              ) : (
-                "Create Course"
               )}
-            </motion.button>
-          )}
-        </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end gap-4">
+              <motion.button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-6 py-3 border ${
+                  isDark
+                    ? "border-[#333] text-[#f8f8f8] hover:bg-[#222]"
+                    : "border-gray-300 text-[#080808] hover:bg-gray-50"
+                } rounded-lg font-medium`}
+              >
+                Cancel
+              </motion.button>
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-6 py-3 ${
+                  isDark
+                    ? "bg-[#7c3aed] hover:bg-[#6d28d9]"
+                    : "bg-[#a78bfa] hover:bg-[#8b5cf6]"
+                } text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+              >
+                {loading ? (
+                  <>
+                    <FiLoader className="animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <FiBook />
+                    Create Course
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </form>
+        </motion.div>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        theme={isDark ? "dark" : "light"}
+      />
     </div>
   );
 };

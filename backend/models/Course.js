@@ -45,14 +45,22 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: [true, "Course category is required"],
       enum: [
-        "Mathematics",
+        "Programming",
+        "Design",
+        "Marketing",
+        "Business",
         "Science",
+        "Math",
+        "Language",
+        "Music",
+        "Art",
+        "Other",
+        "Mathematics",
         "History",
         "Literature",
         "Computer Science",
         "Engineering",
         "Medicine",
-        "Other",
       ],
     },
     language: {
@@ -99,7 +107,8 @@ const courseSchema = new mongoose.Schema(
     ],
     pdfContent: {
       type: String,
-      required: true,
+      required: false,
+      default: "",
     },
     estimatedTime: {
       type: Number, // in minutes
