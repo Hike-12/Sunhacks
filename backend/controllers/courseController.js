@@ -5,8 +5,9 @@ const pdfParse = require("pdf-parse");
 const Progress = require("../models/Progress");
 const GroqCourseGenerator = require("../services/groqService");
 const fetch = require("node-fetch");
+const mongoose = require("mongoose"); // <--- added
 
-// Configure multer for file upload
+// Configure multer for file upload (now optional)
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -29,7 +30,118 @@ const generateCourseCode = () => {
   return `${timestamp}${randomPart}`.toUpperCase();
 };
 
-// Create new course
+// Add this new function before createCourse
+const enhanceDescription = async (req, res) => {
+  try {
+    const { title, description, category, language } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and description are required",
+      });
+    }
+
+    const groqApiKey = process.env.GROQ_API_KEY;
+    const prompt = `You are an expert educational content creator. Given this course information:
+    
+Title: ${title}
+Category: ${category || "General"}
+Language: ${language || "English"}
+Current Description: ${description}
+
+Please enhance and expand this course description to be more comprehensive, engaging, and educational. Include:
+- Learning objectives
+- Target audience
+- Key topics that will be covered
+- Expected outcomes
+- Prerequisites (if any)
+
+Make it detailed but concise, suitable for generating comprehensive course content. Return only the enhanced description.`;
+
+    const groqResponse = await fetch(
+      "https://api.groq.com/openai/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an expert educational content creator and course designer.",
+            },
+            { role: "user", content: prompt },
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      }
+    );
+
+    const groqData = await groqResponse.json();
+
+    if (!groqData.choices?.[0]?.message?.content) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to enhance description",
+      });
+    }
+
+    let enhanced = groqData.choices[0].message.content.trim();
+
+    // Remove common lead-in lines like "Here is the enhanced course description:"
+    enhanced = enhanced.replace(/^\s*Here is[^\n]*\n*/i, "");
+
+    // Simple markdown/HTML sanitizer -> plain text, keep paragraph breaks
+    const sanitizeMarkdownToPlain = (md) => {
+      let txt = String(md);
+
+      // remove HTML tags
+      txt = txt.replace(/<\/?[^>]+(>|$)/g, "");
+
+      // remove bold/italic markers
+      txt = txt.replace(/(\*\*|__)(.*?)\1/g, "$2");
+      txt = txt.replace(/(\*|_)(.*?)\1/g, "$2");
+
+      // convert markdown headings like "**Title:**" or "## Title" -> "Title:"
+      txt = txt.replace(/^\s*(\*{0,2}\s*)?#{1,6}\s*(.+)$/gm, "$2");
+      txt = txt.replace(/^\s*\*{0,2}\s*([A-Za-z ]+):\s*/gm, "$1: ");
+
+      // remove list bullets and keep as new lines
+      txt = txt.replace(/^[\s]*([-*•])\s+/gm, "");
+
+      // remove excessive asterisks or backticks
+      txt = txt.replace(/[`~]{1,}/g, "");
+
+      // collapse multiple blank lines to two newlines (paragraph separation)
+      txt = txt.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n");
+
+      // trim
+      return txt.trim();
+    };
+
+    const enhancedDescription = sanitizeMarkdownToPlain(enhanced);
+
+    res.json({
+      success: true,
+      enhancedDescription,
+      message: "Description enhanced successfully",
+    });
+  } catch (error) {
+    console.error("Description enhancement error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to enhance description",
+    });
+  }
+};
+
+// Create new course (PDF now optional)
 const createCourse = async (req, res) => {
   try {
     const {
@@ -41,7 +153,7 @@ const createCourse = async (req, res) => {
       password,
       tags,
       contentTree,
-      estimatedTime
+      estimatedTime,
     } = req.body;
     const instructorId = req.userId;
 
@@ -54,32 +166,35 @@ const createCourse = async (req, res) => {
       });
     }
 
-    // Check if PDF file is uploaded
-    if (!req.file) {
+    // Validate required fields
+    if (!title || !description) {
       return res.status(400).json({
         success: false,
-        message: "PDF file is required",
+        message: "Title and description are required",
       });
     }
 
-    // Parse PDF content
-    let pdfContent;
-    try {
-      const pdfData = await pdfParse(req.file.buffer);
-      pdfContent = pdfData.text;
+    let pdfContent = null;
 
-      if (!pdfContent || pdfContent.trim().length === 0) {
+    // Parse PDF content if file is uploaded
+    if (req.file) {
+      try {
+        const pdfData = await pdfParse(req.file.buffer);
+        pdfContent = pdfData.text;
+
+        if (!pdfContent || pdfContent.trim().length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "PDF file appears to be empty or unreadable",
+          });
+        }
+      } catch (error) {
+        console.error("PDF parsing error:", error);
         return res.status(400).json({
           success: false,
-          message: "PDF file appears to be empty or unreadable",
+          message: "Failed to parse PDF file. Please ensure it's a valid PDF.",
         });
       }
-    } catch (error) {
-      console.error("PDF parsing error:", error);
-      return res.status(400).json({
-        success: false,
-        message: "Failed to parse PDF file. Please ensure it's a valid PDF.",
-      });
     }
 
     // Prepare course details for content generation
@@ -88,11 +203,15 @@ const createCourse = async (req, res) => {
       description,
       category,
       language,
-      estimatedTime: parseInt(estimatedTime) || 60
+      estimatedTime: parseInt(estimatedTime) || 60,
     };
 
-    // Generate structured content from PDF using courseDetails
-    const generatedContentTree = await generateContentTreeFromPdf(pdfContent, courseDetails);
+    // Generate structured content from description (and PDF if available)
+    const generatedContentTree = await generateContentTreeFromInput(
+      description,
+      pdfContent,
+      courseDetails
+    );
 
     // Parse tags if they exist
     let parsedTags = [];
@@ -148,7 +267,7 @@ const createCourse = async (req, res) => {
       tags: parsedTags,
       pdfContent,
       contentTree: contentTree || generatedContentTree,
-      estimatedTime: courseDetails.estimatedTime
+      estimatedTime: courseDetails.estimatedTime,
     };
 
     // Add private course specific fields
@@ -163,7 +282,9 @@ const createCourse = async (req, res) => {
 
     const responseData = {
       success: true,
-      message: "Course created successfully with AI-generated content",
+      message: pdfContent
+        ? "Course created successfully with AI-generated content from PDF and description"
+        : "Course created successfully with AI-generated content from description",
       course: {
         id: course._id,
         title: course.title,
@@ -179,7 +300,9 @@ const createCourse = async (req, res) => {
     // Include course code only for private courses
     if (course.isPrivate) {
       responseData.course.courseCode = course.courseCode;
-      responseData.message = `Private course created successfully with AI-generated content! Course Code: ${course.courseCode}`;
+      responseData.message = pdfContent
+        ? `Private course created successfully with AI-generated content! Course Code: ${course.courseCode}`
+        : `Private course created successfully with AI-generated content from description! Course Code: ${course.courseCode}`;
     }
 
     res.status(201).json(responseData);
@@ -227,15 +350,15 @@ const updateCourse = async (req, res) => {
     } = req.body;
 
     // Verify the instructor owns this course
-    const existingCourse = await Course.findOne({ 
-      _id: courseId, 
-      instructor: instructorId 
+    const existingCourse = await Course.findOne({
+      _id: courseId,
+      instructor: instructorId,
     });
-    
+
     if (!existingCourse) {
       return res.status(404).json({
         success: false,
-        message: "Course not found or access denied"
+        message: "Course not found or access denied",
       });
     }
 
@@ -255,26 +378,26 @@ const updateCourse = async (req, res) => {
 
     const course = await Course.findByIdAndUpdate(courseId, updateFields, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found"
+        message: "Course not found",
       });
     }
 
     res.json({
       success: true,
       message: "Course updated successfully",
-      course
+      course,
     });
   } catch (err) {
     console.error("Update course error:", err);
     res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
 };
@@ -367,7 +490,9 @@ const getEnrolledCourses = async (req, res) => {
     });
 
     // Filter out progresses with null courses (deleted courses)
-    const validProgresses = progresses.filter(progress => progress.course !== null);
+    const validProgresses = progresses.filter(
+      (progress) => progress.course !== null
+    );
 
     const enrolledCourses = validProgresses.map((progress) => {
       console.log(`Course: ${progress.course.title}`);
@@ -376,7 +501,10 @@ const getEnrolledCourses = async (req, res) => {
 
       // Calculate progress percentage using saved contentTree
       let totalSlides = 1;
-      if (progress.course.contentTree && Array.isArray(progress.course.contentTree)) {
+      if (
+        progress.course.contentTree &&
+        Array.isArray(progress.course.contentTree)
+      ) {
         totalSlides = countTotalSlides(progress.course.contentTree);
         console.log(`Using contentTree: ${totalSlides} slides`);
       }
@@ -415,58 +543,70 @@ const getEnrolledCourses = async (req, res) => {
 // Enroll in a public course
 const enrollInCourse = async (req, res) => {
   try {
-    const { courseId } = req.body;
-    const studentId = req.userId;
+    const userId = req.userId || (req.user && req.user._id);
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-    // Check if course exists and is public
+    const { courseId } = req.body;
+    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid courseId" });
+    }
+
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({
-        success: false,
-        message: "Course not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
-    if (course.isPrivate) {
-      return res.status(403).json({
-        success: false,
-        message: "This is a private course. Use course code to join.",
-      });
-    }
-
-    // Check if already enrolled
+    // prevent duplicate enrollment / progress documents
     const existingProgress = await Progress.findOne({
-      student: studentId,
+      user: userId,
       course: courseId,
     });
-
     if (existingProgress) {
-      return res.status(400).json({
-        success: false,
-        message: "Already enrolled in this course",
+      return res.json({
+        success: true,
+        message: "Already enrolled",
+        progress: existingProgress,
       });
     }
 
-    // Create progress record
+    // create progress record with user reference (fixes "user is required" validation error)
     const progress = new Progress({
-      student: studentId,
-      course: courseId,
+      user: mongoose.Types.ObjectId(userId),
+      course: mongoose.Types.ObjectId(courseId),
+      currentSection: 0,
+      currentTopic: 0,
+      completed: false,
+      startedAt: new Date(),
     });
+
     await progress.save();
 
-    // Add student to course's enrolled list
-    course.enrolledStudents.push(studentId);
-    await course.save();
+    // add user to course enrolled list if model stores it
+    if (Array.isArray(course.enrolledStudents)) {
+      if (
+        !course.enrolledStudents.find((id) => String(id) === String(userId))
+      ) {
+        course.enrolledStudents.push(userId);
+        await course.save();
+      }
+    }
 
-    res.json({
-      success: true,
-      message: "Successfully enrolled in course",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.json({ success: true, message: "Enrolled", progress });
+  } catch (err) {
+    console.error("Enroll error:", err);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Enrollment failed",
+        error: err.message,
+      });
   }
 };
 
@@ -535,49 +675,61 @@ const getCourseContent = async (req, res) => {
     const { courseId } = req.params;
     const userId = req.userId;
 
+    // Validate courseId early to avoid Mongoose CastError when callers pass slugs or strings
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid course id. If you are calling a special route (e.g. 'my-courses'), use the dedicated endpoint (e.g. /api/courses/instructor or /api/courses/enrolled).",
+      });
+    }
+
     // Get user to check role
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     let course;
 
-    if (user.role === 'teacher') {
+    if (user.role === "teacher") {
       // Teachers can access their own courses
-      course = await Course.findOne({ 
-        _id: courseId, 
-        instructor: userId 
-      }).populate('instructor', 'name email');
-      
+      course = await Course.findOne({
+        _id: courseId,
+        instructor: userId,
+      }).populate("instructor", "name email");
+
       if (!course) {
         return res.status(404).json({
           success: false,
-          message: "Course not found or access denied"
+          message: "Course not found or access denied",
         });
       }
     } else {
       // Students need to be enrolled
       const progress = await Progress.findOne({
         student: userId,
-        course: courseId
+        course: courseId,
       });
 
       if (!progress) {
         return res.status(403).json({
           success: false,
-          message: "You are not enrolled in this course"
+          message: "You are not enrolled in this course",
         });
       }
 
-      course = await Course.findById(courseId).populate('instructor', 'name email');
+      course = await Course.findById(courseId).populate(
+        "instructor",
+        "name email"
+      );
       if (!course) {
         return res.status(404).json({
           success: false,
-          message: "Course not found"
+          message: "Course not found",
         });
       }
     }
@@ -587,11 +739,11 @@ const getCourseContent = async (req, res) => {
     if (content.length === 0) {
       content = [
         {
-          id: 'welcome-1',
-          title: 'Welcome',
-          type: 'topic',
-          content: '<p>Course content will be available soon.</p>',
-        }
+          id: "welcome-1",
+          title: "Welcome",
+          type: "topic",
+          content: "<p>Course content will be available soon.</p>",
+        },
       ];
     }
 
@@ -606,24 +758,23 @@ const getCourseContent = async (req, res) => {
       tags: course.tags,
       contentTree: content, // Return saved contentTree
       instructor: course.instructor,
-      estimatedTime: course.estimatedTime
+      estimatedTime: course.estimatedTime,
     };
 
     // Include course code for private courses (teachers only)
-    if (user.role === 'teacher' && course.isPrivate) {
+    if (user.role === "teacher" && course.isPrivate) {
       courseData.courseCode = course.courseCode;
     }
 
     res.json({
       success: true,
-      course: courseData
+      course: courseData,
     });
-
   } catch (error) {
     console.error("Error fetching course content:", error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -687,13 +838,15 @@ const updateProgress = async (req, res) => {
           completedSlides,
           lastAccessedAt: new Date(),
         },
-        $setOnInsert: { totalStudyTime: 0 }
+        $setOnInsert: { totalStudyTime: 0 },
       },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
     // Calculate progress percentage
-    const progressPercentage = Math.round((completedSlides / totalSlides) * 100);
+    const progressPercentage = Math.round(
+      (completedSlides / totalSlides) * 100
+    );
 
     res.json({
       success: true,
@@ -721,15 +874,15 @@ const updateStudyTime = async (req, res) => {
     if (!timeSpent || timeSpent <= 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid time spent value"
+        message: "Invalid time spent value",
       });
     }
 
     const progress = await Progress.findOneAndUpdate(
       { user: userId, course: courseId },
-      { 
+      {
         $inc: { totalStudyTime: timeSpent },
-        lastAccessedAt: new Date()
+        lastAccessedAt: new Date(),
       },
       { new: true }
     );
@@ -737,24 +890,24 @@ const updateStudyTime = async (req, res) => {
     if (!progress) {
       return res.status(404).json({
         success: false,
-        message: "Progress not found"
+        message: "Progress not found",
       });
     }
 
     // Check for new achievements after study time update
-    const { checkAchievements } = require('./achievementController');
+    const { checkAchievements } = require("./achievementController");
     await checkAchievements(studentId);
 
     res.json({
       success: true,
       totalStudyTime: progress.totalStudyTime,
-      message: `Added ${timeSpent} minutes to study time`
+      message: `Added ${timeSpent} minutes to study time`,
     });
   } catch (error) {
     console.error("Update study time error:", error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -810,7 +963,6 @@ const submitQuizResult = async (req, res) => {
       if (!quiz) {
         explanation = "Quiz data not found for explanation.";
       } else {
-        
         const prompt = `
 You are an expert tutor. For each quiz question below, respond in this format:
 
@@ -829,21 +981,24 @@ ${JSON.stringify(answers, null, 2)}
 Please respond for each question in the above format, one after another.
 `;
 
-        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${groqApiKey}`,
-          },
-          body: JSON.stringify({
-            model: "llama3-8b-8192",
-            messages: [
-              { role: "system", content: "You are an expert tutor." },
-              { role: "user", content: prompt }
-            ],
-            max_tokens: 512,
-          }),
-        });
+        const groqResponse = await fetch(
+          "https://api.groq.com/openai/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${groqApiKey}`,
+            },
+            body: JSON.stringify({
+              model: "llama3-8b-8192",
+              messages: [
+                { role: "system", content: "You are an expert tutor." },
+                { role: "user", content: prompt },
+              ],
+              max_tokens: 512,
+            }),
+          }
+        );
         const groqData = await groqResponse.json();
         console.log("Groq API response:", groqData);
         explanation =
@@ -926,10 +1081,10 @@ const getCourseSlideCount = async (courseId) => {
 // Helper function to count total slides in contentTree
 const countTotalSlides = (contentTree) => {
   let count = 0;
-  
+
   const traverse = (nodes) => {
     for (const node of nodes) {
-      if (node.type === 'topic') {
+      if (node.type === "topic") {
         count++;
       }
       if (node.children && Array.isArray(node.children)) {
@@ -937,91 +1092,145 @@ const countTotalSlides = (contentTree) => {
       }
     }
   };
-  
+
   traverse(contentTree);
   return Math.max(count, 1); // Ensure at least 1 slide
 };
 
-// Helper function to generate contentTree from PDF
-const generateContentTreeFromPdf = async (pdfContent, courseDetails) => {
+// Helper function to generate contentTree from description and optional PDF
+const generateContentTreeFromInput = async (
+  description,
+  pdfContent,
+  courseDetails
+) => {
   try {
     const groqGenerator = new GroqCourseGenerator();
-    // Pass both pdfContent AND courseDetails to the generator
-    const generatedContent = await groqGenerator.generateCourseStructure(pdfContent, courseDetails);
-    
-    console.log('Generated content from Lyzr:', JSON.stringify(generatedContent, null, 2));
+
+    // Combine description and PDF content if available
+    const inputContent = pdfContent
+      ? `Course Description: ${description}\n\nAdditional PDF Content: ${pdfContent}`
+      : `Course Description: ${description}`;
+
+    console.log(
+      "Generating content from input:",
+      inputContent.substring(0, 200) + "..."
+    );
+
+    const generatedContent = await groqGenerator.generateCourseStructure(
+      inputContent,
+      courseDetails
+    );
+
+    console.log(
+      "Generated content:",
+      JSON.stringify(generatedContent, null, 2)
+    );
     return generatedContent;
   } catch (error) {
-    console.error('Lyzr generation failed, using fallback:', error);
-    // Also pass courseDetails to the fallback
-    return generateBasicContentTreeFromPdf(pdfContent, courseDetails);
+    console.error("Content generation failed, using fallback:", error);
+    return generateBasicContentTreeFromDescription(description, courseDetails);
   }
 };
 
-// Update the fallback function to accept courseDetails
-const generateBasicContentTreeFromPdf = (pdfContent, courseDetails = {}) => {
-  // Split PDF content into sections
-  const paragraphs = pdfContent
-    .split("\n\n")
-    .filter((p) => p.trim().length > 50);
+// Update the fallback function to work with description
+const generateBasicContentTreeFromDescription = (
+  description,
+  courseDetails = {}
+) => {
+  // Generate basic content structure from description
+  const topics = [
+    "Introduction and Overview",
+    "Fundamentals and Core Concepts",
+    "Key Principles and Methods",
+    "Practical Applications",
+    "Advanced Techniques",
+    "Summary and Conclusion",
+  ];
 
-  const sections = [];
-  let currentSection = null;
-  let topicCounter = 0;
+  const sections = topics.map((topicTitle, index) => {
+    const sectionId = `section-${index + 1}`;
+    const topicId = `topic-${index + 1}`;
 
-  paragraphs.slice(0, 20).forEach((content, index) => {
-    // Every 5 topics, create a new section
-    if (index % 5 === 0) {
-      if (currentSection) {
-        sections.push(currentSection);
-      }
-      currentSection = {
-        id: `section-${Math.floor(index / 5) + 1}`,
-        title: `Section ${Math.floor(index / 5) + 1}`,
-        type: 'section',
-        content: '',
-        children: []
-      };
-    }
+    const content = `<p>This section covers ${topicTitle.toLowerCase()} related to ${
+      courseDetails.title || "the course topic"
+    }.</p>
+    <p>${description}</p>
+    <p>You will learn essential concepts and practical skills in this area.</p>`;
 
-    topicCounter++;
-    const topic = {
-      id: `topic-${topicCounter}`,
-      title: `Topic ${topicCounter}`,
-      type: 'topic',
-      content: content.replace(/\n/g, "<br>"),
-      videoUrls: [
-        "https://www.youtube.com/results?search_query=tutorial+learning",
-        "https://www.youtube.com/results?search_query=education+explained"
+    const hasQuiz = index === 2 || index === 4; // Add quizzes at sections 3 and 5
+
+    return {
+      id: sectionId,
+      title: `Section ${index + 1}: ${topicTitle}`,
+      type: "section",
+      content: "",
+      children: [
+        {
+          id: topicId,
+          title: topicTitle,
+          type: "topic",
+          content: content,
+          videoUrls: [
+            `https://www.youtube.com/results?search_query=${encodeURIComponent(
+              courseDetails.title || "tutorial"
+            )}+${encodeURIComponent(topicTitle)}`,
+          ],
+          imageUrls: [
+            `https://source.unsplash.com/800x600/?${encodeURIComponent(
+              courseDetails.category || "education"
+            )}`,
+          ],
+          mermaid:
+            index === 1 ? generateBasicMermaidDiagram(courseDetails.title) : "",
+          quiz: hasQuiz
+            ? {
+                questions: [
+                  {
+                    question: `What is the main concept covered in ${topicTitle}?`,
+                    type: "mcq",
+                    options: [
+                      `Core principles of ${topicTitle}`,
+                      `Basic overview only`,
+                      `Advanced techniques only`,
+                      `Unrelated concepts`,
+                    ],
+                    correctAnswer: 0,
+                    explanation: `This topic focuses on the core principles and concepts of ${topicTitle}.`,
+                  },
+                  {
+                    question: `How does ${topicTitle} relate to the overall course?`,
+                    type: "mcq",
+                    options: [
+                      "It's a fundamental building block",
+                      "It's optional material",
+                      "It's only for advanced learners",
+                      "It's not related",
+                    ],
+                    correctAnswer: 0,
+                    explanation: `${topicTitle} is an essential component that builds upon previous concepts.`,
+                  },
+                ],
+                difficulty:
+                  index < 2 ? "basic" : index < 4 ? "intermediate" : "advanced",
+              }
+            : { questions: [], difficulty: "basic" },
+          children: [],
+        },
       ],
-      imageUrls: [
-        "https://source.unsplash.com/800x600/?education",
-        "https://source.unsplash.com/800x600/?learning"
-      ],
-      mermaid: '',
-      quiz: {
-        questions: index % 5 === 4 ? [
-          {
-            question: "What is the main concept discussed in this topic?",
-            type: "mcq",
-            options: ["Concept A", "Concept B", "Concept C", "Concept D"],
-            correctAnswer: 0,
-            explanation: "This covers the main concept of the topic."
-          }
-        ] : [],
-        difficulty: index < 5 ? "basic" : index < 10 ? "intermediate" : "advanced",
-      },
-      children: []
     };
-
-    currentSection.children.push(topic);
   });
 
-  if (currentSection) {
-    sections.push(currentSection);
-  }
-
   return sections;
+};
+
+// Generate a basic Mermaid diagram
+const generateBasicMermaidDiagram = (courseTitle) => {
+  return `flowchart TD
+    A[Start Learning] --> B[${courseTitle}]
+    B --> C[Core Concepts]
+    C --> D[Practice]
+    D --> E[Apply Knowledge]
+    E --> F[Master Topic]`;
 };
 
 const getCourseStudents = async (req, res) => {
@@ -1030,22 +1239,31 @@ const getCourseStudents = async (req, res) => {
     const instructorId = req.userId;
 
     // Verify the instructor owns this course
-    const course = await Course.findOne({ _id: courseId, instructor: instructorId });
+    const course = await Course.findOne({
+      _id: courseId,
+      instructor: instructorId,
+    });
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found or access denied"
+        message: "Course not found or access denied",
       });
     }
 
     const progresses = await Progress.find({ course: courseId })
-      .populate('student', 'name email')
-      .select('student currentSlide completedSlides isCompleted lastAccessedAt totalStudyTime');
+      .populate("student", "name email")
+      .select(
+        "student currentSlide completedSlides isCompleted lastAccessedAt totalStudyTime"
+      );
 
-    const students = progresses.map(progress => {
-      const totalSlides = course.contentTree ? countTotalSlides(course.contentTree) : 1;
-      const progressPercentage = Math.round((progress.completedSlides / totalSlides) * 100);
-      
+    const students = progresses.map((progress) => {
+      const totalSlides = course.contentTree
+        ? countTotalSlides(course.contentTree)
+        : 1;
+      const progressPercentage = Math.round(
+        (progress.completedSlides / totalSlides) * 100
+      );
+
       return {
         _id: progress.student._id,
         name: progress.student.name,
@@ -1056,19 +1274,19 @@ const getCourseStudents = async (req, res) => {
           progressPercentage,
           isCompleted: progress.isCompleted,
           lastAccessedAt: progress.lastAccessedAt,
-          totalStudyTime: progress.totalStudyTime
-        }
+          totalStudyTime: progress.totalStudyTime,
+        },
       };
     });
 
     res.json({
       success: true,
-      students
+      students,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -1080,37 +1298,50 @@ const getCourseAnalytics = async (req, res) => {
     const instructorId = req.userId;
 
     // Verify the instructor owns this course
-    const course = await Course.findOne({ _id: courseId, instructor: instructorId });
+    const course = await Course.findOne({
+      _id: courseId,
+      instructor: instructorId,
+    });
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found or access denied"
+        message: "Course not found or access denied",
       });
     }
 
     const progresses = await Progress.find({ course: courseId });
-    const totalSlides = course.contentTree ? countTotalSlides(course.contentTree) : 1;
-    
+    const totalSlides = course.contentTree
+      ? countTotalSlides(course.contentTree)
+      : 1;
+
     const analytics = {
       totalStudents: progresses.length,
-      completedStudents: progresses.filter(p => p.isCompleted).length,
-      averageProgress: progresses.length > 0 
-        ? Math.round(progresses.reduce((acc, p) => acc + p.completedSlides, 0) / progresses.length)
-        : 0,
+      completedStudents: progresses.filter((p) => p.isCompleted).length,
+      averageProgress:
+        progresses.length > 0
+          ? Math.round(
+              progresses.reduce((acc, p) => acc + p.completedSlides, 0) /
+                progresses.length
+            )
+          : 0,
       totalSlides: totalSlides,
-      averageStudyTime: progresses.length > 0
-        ? Math.round(progresses.reduce((acc, p) => acc + (p.totalStudyTime || 0), 0) / progresses.length)
-        : 0
+      averageStudyTime:
+        progresses.length > 0
+          ? Math.round(
+              progresses.reduce((acc, p) => acc + (p.totalStudyTime || 0), 0) /
+                progresses.length
+            )
+          : 0,
     };
 
     res.json({
       success: true,
-      analytics
+      analytics,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -1121,11 +1352,14 @@ const toggleCoursePublish = async (req, res) => {
     const { courseId } = req.params;
     const instructorId = req.userId;
 
-    const course = await Course.findOne({ _id: courseId, instructor: instructorId });
+    const course = await Course.findOne({
+      _id: courseId,
+      instructor: instructorId,
+    });
     if (!course) {
       return res.status(404).json({
         success: false,
-        message: "Course not found or access denied"
+        message: "Course not found or access denied",
       });
     }
 
@@ -1134,34 +1368,37 @@ const toggleCoursePublish = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Course ${course.isPublished ? 'published' : 'unpublished'} successfully`,
-      isPublished: course.isPublished
+      message: `Course ${
+        course.isPublished ? "published" : "unpublished"
+      } successfully`,
+      isPublished: course.isPublished,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
 
 const getEmojiForCategory = (category) => {
   const emojis = {
-    "Programming": "💻",
-    "Design": "🎨",
-    "Marketing": "📈",
-    "Business": "🏢",
-    "Science": "🔬",
-    "Math": "➗",
-    "Language": "🗣️",
-    "Music": "🎵",
-    "Art": "🖼️",
+    Programming: "💻",
+    Design: "🎨",
+    Marketing: "📈",
+    Business: "🏢",
+    Science: "🔬",
+    Math: "➗",
+    Language: "🗣️",
+    Music: "🎵",
+    Art: "🖼️",
   };
   return emojis[category] || "📚"; // Default to book emoji
 };
 
 module.exports = {
   createCourse,
+  enhanceDescription, // Add this line
   updateCourse,
   getInstructorCourses,
   getPublicCourses,
