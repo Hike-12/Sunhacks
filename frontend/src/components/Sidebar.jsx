@@ -8,6 +8,7 @@ import {
   FaLanguage,
   FaBrain,
   FaRoute,
+  FaVideo,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -21,6 +22,7 @@ const navItems = [
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
   { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
   { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
+  { key: "video-generator", label: "AI Video Generator", icon: <FaVideo /> },
 ];
 
 const Sidebar = ({ activeKey, setActiveTab }) => {
