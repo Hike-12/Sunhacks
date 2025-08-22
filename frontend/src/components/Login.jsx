@@ -27,7 +27,7 @@ const Login = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/auth/login`,
+        `${import.meta.env.VITE_NODE_BASE_API_URL}/api/auth/login`,
         {
           method: "POST",
           headers: {
@@ -70,7 +70,7 @@ const Login = () => {
     >
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="flex flex-row items-center justify-center gap-4 mb-6">
+          <Link to="/" className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer">
             <img
               src="/logo.png"
               alt="E-Gurukul Logo"
@@ -81,9 +81,9 @@ const Login = () => {
                 isDark ? "text-[#f8f8f8]" : "text-[#222052]"
               }`}
             >
-              E-Gurukul
+              StudyAid
             </h1>
-          </div>
+          </Link>
           <div
             className={`
                             ${
@@ -161,20 +161,6 @@ const Login = () => {
                 )}
               </button>
               <div className="text-center flex justify-between">
-                <Link
-                  to="/"
-                  className={`
-                                        underline underline-offset-2
-                                        ${
-                                          isDark
-                                            ? "text-[#a78bfa] hover:text-[#f8f8f8]"
-                                            : "text-[#7c3aed] hover:text-[#222052]"
-                                        }
-                                        transition-colors
-                                    `}
-                >
-                  &larr; Back to Home
-                </Link>
                 <Link
                   to="/signup"
                   className={`

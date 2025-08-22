@@ -165,7 +165,7 @@ const TeacherDashboard = () => {
         onLogout={handleLogout}
         activeKey={activeTab}
         setActiveTab={setActiveTab}
-        title="StudyGenie Dashboard"
+        title="StudyAid Dashboard"
         subtitle={`AI-Powered Learning Assistant | ${
           user.language || "English"
         }`}

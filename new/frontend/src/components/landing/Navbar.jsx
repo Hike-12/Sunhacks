@@ -71,7 +71,7 @@ const Navbar = ({ onGetStarted }) => {
             }}
             className="text-2xl font-bold text-primary"
           >
-            StudyGenie
+            StudyG
           </motion.h1>
 
           <motion.nav

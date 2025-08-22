@@ -530,7 +530,7 @@ const StudentDashboard = () => {
           >
             {!collapsed && (
               <h1 className={`font-bold ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}`}>
-                StudyGenie
+                StudyAid
               </h1>
             )}
             <button
