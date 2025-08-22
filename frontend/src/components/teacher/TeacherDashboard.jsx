@@ -16,6 +16,7 @@ import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
 import TeacherCommunity from "./TeacherCommunity";
 import AchievementSection from "./Achievements";
+import DoubtSolverChatbot from "./Chatbot";
 import EnrolledCourses from "./EnrolledCourses";
 
 const TeacherDashboard = () => {
@@ -149,6 +150,8 @@ const TeacherDashboard = () => {
         return <Analytics />;
       case "achievements":
         return <AchievementSection />;
+      case "doubt-solver":
+        return <DoubtSolverChatbot />;
       case "viva-preperation":
         return <InterviewPrep />;
       case "flashcard-generator":

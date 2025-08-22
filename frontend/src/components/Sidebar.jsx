@@ -9,6 +9,7 @@ import {
   FaBrain,
   FaRoute,
   FaMedal,
+  FaRobot,
   FaUsers,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +22,7 @@ const navItems = [
   { key: "viva-preperation", label: "Viva Preparation", icon: <FaLanguage /> },
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
   { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
+  { key: "doubt-solver", label: "Doubt Solver", icon: <FaRobot /> },
   { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
   { key: "achievements", label: "Achievements", icon: <FaMedal /> },
 ];
