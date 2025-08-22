@@ -45,7 +45,7 @@ const Login = () => {
         localStorage.setItem("role", data.user.role);
         toast.success("Welcome back!");
         if (data.user.role === "teacher") {
-          navigate("/teacher-dashboard");
+          navigate("/dashboard");
         } else if (data.user.role === "student") {
           navigate("/student-dashboard");
         } else {
@@ -70,7 +70,7 @@ const Login = () => {
     >
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="flex flex-row items-center justify-center gap-4 mb-6">
+          <Link to="/" className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer">
             <img
               src="/logo.png"
               alt="E-Gurukul Logo"
@@ -81,9 +81,9 @@ const Login = () => {
                 isDark ? "text-[#f8f8f8]" : "text-[#222052]"
               }`}
             >
-              E-Gurukul
+              StudyAid
             </h1>
-          </div>
+          </Link>
           <div
             className={`
                             ${
@@ -160,7 +160,7 @@ const Login = () => {
                   "Sign In"
                 )}
               </button>
-              <div className="text-center">
+              <div className="text-center flex justify-between">
                 <Link
                   to="/signup"
                   className={`

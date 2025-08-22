@@ -194,7 +194,7 @@ const StudentStats = () => {
             ctx.fillStyle = isDark ? '#f8f8f8' : '#080808';
             ctx.font = 'bold 32px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('My Learning Stats - StudyGenie', canvas.width / 2, 80);
+            ctx.fillText('My Learning Stats - StudyAid', canvas.width / 2, 80);
 
             // Stats
             const statsData = [
