@@ -21,12 +21,23 @@ import CourseEditor from "./components/teacher/CourseEditor";
 import { ThemeProvider } from "./context/ThemeContext";
 import WikipediaShorts, { WikipediaShortsLauncher } from "./components/TikTok";
 import TeacherCommunity from "./components/teacher/TeacherCommunity"; // <--- added
-
 import PomodoroDial from "./components/Pomodoro";
 import PomodoroFloating from "./components/PomodoroFloating";
+import { translatePage } from "./lib/translatePage";
+import { useEffect } from "react";
+import { restoreTranslation } from "./lib/restoreTranslation";
+
+
 function App() {
+  useEffect(() => {
+    restoreTranslation();
+  }, []);
+
   return (
     <ThemeProvider>
+      <button onClick={() => translatePage("mr")}>
+      Translate to Marathi
+    </button>
       <Router>
         {/* Place your Navbar here if you have one */}
         <PomodoroFloating /> {/* <-- Add this line */}

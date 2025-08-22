@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { translate } from '../services/translation';
+import {translateText} from "../services/translation.js";
 import { useLanguage } from '../context/LanguageContext';
 
 export const TranslatedText = ({ children, className, style }) => {
@@ -9,18 +9,29 @@ export const TranslatedText = ({ children, className, style }) => {
 
   useEffect(() => {
     let isMounted = true;
-    
+    const cacheKey = `translation_${children}_${currentLanguage}`;
+
     const translateContent = async () => {
       if (typeof children !== 'string' || currentLanguage === 'en') {
         setTranslatedText(children);
         return;
       }
 
+      // Check cache first
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        setTranslatedText(cached);
+        return;
+      }
+
       setIsTranslating(true);
       try {
-        const result = await translate(children, currentLanguage);
+        // Batch API expects array
+        const resultArr = await translateText([children], currentLanguage);
+        const result = resultArr[0] || children;
         if (isMounted) {
           setTranslatedText(result);
+          localStorage.setItem(cacheKey, result);
         }
       } catch (error) {
         console.error('Translation error:', error);
