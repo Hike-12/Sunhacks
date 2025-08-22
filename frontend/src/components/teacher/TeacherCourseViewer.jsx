@@ -168,7 +168,7 @@ const TeacherCourseViewer = () => {
   };
 
   const handleBack = () => {
-    navigate("/teacher-dashboard");
+    navigate("/dashboard");
   };
 
   if (loading) {

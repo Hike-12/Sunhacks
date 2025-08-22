@@ -217,7 +217,7 @@ const Courses = ({ setActiveTab }) => {
                 <div className="flex items-center gap-2 mt-2">
                   <button
                     onClick={() =>
-                      navigate(`/teacher/courses/${course.id || course._id}/edit`)
+                      navigate(`/courses/${course.id || course._id}/edit`)
                     }
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border ${
                       isDark 
@@ -229,7 +229,7 @@ const Courses = ({ setActiveTab }) => {
                   </button>
                   <button
                     onClick={() =>
-                      navigate(`/teacher/courses/${course.id || course._id}/view`)
+                      navigate(`/courses/${course.id || course._id}/view`)
                     }
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border ${
                       isDark 
@@ -241,7 +241,7 @@ const Courses = ({ setActiveTab }) => {
                   </button>
                   <button
     onClick={() =>
-      navigate(`/teacher/courses/${course.id || course._id}/take`)
+      navigate(`/courses/${course.id || course._id}/take`)
     }
     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border ${
       isDark 
