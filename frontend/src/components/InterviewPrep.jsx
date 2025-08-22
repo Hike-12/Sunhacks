@@ -8,19 +8,35 @@ import RecordRTC from "recordrtc";
 const sampleJobs = [
   {
     id: 1,
-    company_name: "TechNova Solutions",
-    job_title: "Software Engineer",
-    job_description: "Develop and maintain scalable software solutions for our clients.",
-    required_skills: ["JavaScript", "React", "Node.js", "MongoDB", "REST APIs"],
-    location: "San Francisco, CA (Hybrid)",
+    company_name: "School",
+    job_title: "Mathematics",
+    job_description: "Answer questions related to algebra, geometry, and calculus.",
+    required_skills: ["Problem Solving", "Logical Reasoning", "Numerical Skills"],
+    location: "Classroom",
   },
   {
     id: 2,
-    company_name: "GreenEarth Innovations",
-    job_title: "Sustainability Analyst",
-    job_description: "Analyze company operations to identify areas for sustainability improvements.",
-    required_skills: ["Data analysis", "Sustainability reporting"],
-    location: "Remote",
+    company_name: "School",
+    job_title: "Science",
+    job_description: "Discuss concepts in physics, chemistry, and biology.",
+    required_skills: ["Critical Thinking", "Experimentation", "Observation"],
+    location: "Lab",
+  },
+  {
+    id: 3,
+    company_name: "School",
+    job_title: "English Literature",
+    job_description: "Analyze poems, stories, and plays.",
+    required_skills: ["Reading", "Interpretation", "Writing"],
+    location: "Library",
+  },
+  {
+    id: 4,
+    company_name: "School",
+    job_title: "History",
+    job_description: "Answer questions about historical events and figures.",
+    required_skills: ["Research", "Memory", "Analysis"],
+    location: "Classroom",
   },
 ];
 
@@ -364,13 +380,13 @@ const InterviewPrep = () => {
         const user = JSON.parse(localStorage.getItem("firebaseUser"));
         const firebaseUid = user?.uid || localStorage.getItem("firebaseUid");
         if (firebaseUid) {
-          const jobsRes = await fetch(`${import.meta.env.VITE_API_URL}/jobs/wishlist/user/${firebaseUid}`);
+          const jobsRes = await fetch(`http://localhost:5000/jobs/wishlist/user/${firebaseUid}`);
           const jobsJson = await jobsRes.json();
           if (Array.isArray(jobsJson.wishlist) && jobsJson.wishlist.length > 0) jobsData = jobsJson.wishlist;
         }
       } catch {}
       try {
-        const resumeRes = await fetch(`${import.meta.env.VITE_API_URL}/profile/resume`, {
+        const resumeRes = await fetch(`http://localhost:5000/profile/resume`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
@@ -386,58 +402,70 @@ const InterviewPrep = () => {
 
   // EXISTING: Initialize interview
   const startInterview = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/interview/questions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          job: selectedJob,
-          resume,
-        }),
-      });
-      const data = await res.json();
-      let qs = [];
-      if (Array.isArray(data.questions) && data.questions.length > 0) {
-        qs = data.questions;
-        setQuestions(qs);
-      } else {
-        qs = [
-          "Tell me about yourself.",
-          "Describe a challenging project you worked on.",
-          "How do you handle tight deadlines?",
-          "What is your experience with React?",
-          "Why do you want to work at this company?",
-        ];
-        setQuestions(qs);
-      }
-      setAnswers(qs.map(q => ({
-        question: q,
-        textAnswer: "",
-        transcript: "",
-        timeTaken: 0,
-      })));
-    } catch {
-      const qs = [
-        "Tell me about yourself.",
-        "Describe a challenging project you worked on.",
-        "How do you handle tight deadlines?",
-        "What is your experience with React?",
-        "Why do you want to work at this company?",
+  try {
+    const res = await fetch(`http://localhost:5000/interview/questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        job: selectedJob,
+        resume,
+      }),
+    });
+    const data = await res.json();
+    let qs = [];
+    if (Array.isArray(data.questions) && data.questions.length > 0) {
+      qs = data.questions;
+      setQuestions(qs);
+    } else {
+      // PHYSICS VIVA QUESTIONS
+      qs = [
+        "What is Newton's First Law of Motion?",
+        "Explain the difference between speed and velocity.",
+        "What is meant by acceleration due to gravity?",
+        // "State Ohm's Law and its mathematical expression.",
+        "Describe the principle of conservation of energy.",
+        // "What are scalar and vector quantities? Give examples.",
+        // "Explain the concept of refraction of light.",
+        "What is the unit of force?",
+        // "How does a transformer work?",
+        // "What is the difference between mass and weight?",
       ];
       setQuestions(qs);
-      setAnswers(qs.map(q => ({
-        question: q,
-        textAnswer: "",
-        transcript: "",
-        timeTaken: 0,
-      })));
     }
-    setStep(1);
-    setCurrentQ(0);
-    setMediaBlobs([]);
-    setTranscript("");
-    transcriptRef.current = "";
-  };
+    setAnswers(qs.map(q => ({
+      question: q,
+      textAnswer: "",
+      transcript: "",
+      timeTaken: 0,
+    })));
+  } catch {
+    // PHYSICS VIVA QUESTIONS
+    const qs = [
+      "What is Newton's First Law of Motion?",
+        "Explain the difference between speed and velocity.",
+        "What is meant by acceleration due to gravity?",
+        // "State Ohm's Law and its mathematical expression.",
+        "Describe the principle of conservation of energy.",
+        // "What are scalar and vector quantities? Give examples.",
+        // "Explain the concept of refraction of light.",
+        "What is the unit of force?",
+        // "How does a transformer work?",
+        // "What is the difference between mass and weight?",
+    ];
+    setQuestions(qs);
+    setAnswers(qs.map(q => ({
+      question: q,
+      textAnswer: "",
+      transcript: "",
+      timeTaken: 0,
+    })));
+  }
+  setStep(1);
+  setCurrentQ(0);
+  setMediaBlobs([]);
+  setTranscript("");
+  transcriptRef.current = "";
+};
 
   // ENHANCED: Start recording with analysis
   const startRecording = async () => {
@@ -613,7 +641,7 @@ const InterviewPrep = () => {
       
       let authToken = localStorage.getItem("authToken");
       
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/interview/submit`, {
+      const res = await fetch(`http://localhost:5000/interview/submit`, {
         method: "POST",
         headers: {
           ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
@@ -624,7 +652,7 @@ const InterviewPrep = () => {
       if (!res.ok) {
         if (res.status === 401) {
           console.warn("Auth token expired, submitting without authentication");
-          const retryRes = await fetch(`${import.meta.env.VITE_API_URL}/interview/submit`, {
+          const retryRes = await fetch(`http://localhost:5000/interview/submit`, {
             method: "POST",
             body: formData,
           });

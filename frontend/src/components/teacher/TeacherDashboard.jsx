@@ -13,6 +13,7 @@ import PersonalizedStudyFlow from "../PersonalizedStudyFlow";
 import { useTheme } from "../../context/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
+import InterviewPrep from "../InterviewPrep";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -97,6 +98,12 @@ const TeacherDashboard = () => {
       onClick: () => setActiveTab("analytics"),
     },
     {
+      id: "viva-preperation",
+      label: "Viva Preperation",
+      active: activeTab === "viva-preperation",
+      onClick: () => setActiveTab("viva-preperation"),
+    },
+    {
       id: "flashcard-generator",
       label: "Smart Flashcards",
       active: activeTab === "flashcard-generator",
@@ -121,6 +128,8 @@ const TeacherDashboard = () => {
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "analytics":
         return <Analytics />;
+      case "viva-preperation":
+        return <InterviewPrep />
       case "flashcard-generator":
         return <FlashcardGenerator />;
       case "study-flow":
