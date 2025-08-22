@@ -900,7 +900,23 @@ const updateStudyTime = async (req, res) => {
   }
 };
 
-// Submit quiz result
+function findQuizById(contentTree, quizId) {
+  let found = null;
+  const traverse = (nodes) => {
+    for (const node of nodes) {
+      if (node.type === "topic" && node.quiz && node.id === quizId) {
+        found = node.quiz;
+        return;
+      }
+      if (node.children && Array.isArray(node.children)) {
+        traverse(node.children);
+      }
+    }
+  };
+  traverse(contentTree);
+  return found;
+}
+
 const submitQuizResult = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -922,36 +938,59 @@ const submitQuizResult = async (req, res) => {
 
     await progress.save();
 
-    // --- Direct Groq API call using a normal model ---
+    // --- Get quiz data for explanation ---
     let explanation = "";
     try {
       const groqApiKey = process.env.GROQ_API_KEY;
-      const prompt = `Explain the answers for quiz ${quizId}: ${JSON.stringify(
-        answers
-      )}`;
-      const groqResponse = await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
+      const course = await Course.findById(courseId);
+      let quiz = null;
+      if (course && course.contentTree) {
+        quiz = findQuizById(course.contentTree, quizId);
+      }
+
+      if (!quiz) {
+        explanation = "Quiz data not found for explanation.";
+      } else {
+        
+        const prompt = `
+You are an expert tutor. For each quiz question below, respond in this format:
+
+Question {number}: {question text}
+Student's answer: {student's answer} ({student's answer text})
+Correctness: {Correct/Incorrect}
+Explanation: {short explanation}
+Correct answer: {correct answer index} ({correct answer text})
+
+Quiz questions:
+${JSON.stringify(quiz.questions, null, 2)}
+
+Student's answers:
+${JSON.stringify(answers, null, 2)}
+
+Please respond for each question in the above format, one after another.
+`;
+
+        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${groqApiKey}`,
+            "Authorization": `Bearer ${groqApiKey}`,
           },
           body: JSON.stringify({
-            model: "llama3-8b-8192", // Use a normal Groq model
+            model: "llama3-8b-8192",
             messages: [
               { role: "system", content: "You are an expert tutor." },
-              { role: "user", content: prompt },
+              { role: "user", content: prompt }
             ],
-            max_tokens: 256,
+            max_tokens: 512,
           }),
-        }
-      );
-      const groqData = await groqResponse.json();
-      console.log("Groq API response:", groqData);
-      explanation =
-        groqData.choices?.[0]?.message?.content ||
-        "Explanation could not be generated.";
+        });
+        const groqData = await groqResponse.json();
+        console.log("Groq API response:", groqData);
+        explanation =
+          groqData.choices?.[0]?.message?.content ||
+          "Explanation could not be generated.";
+      }
     } catch (err) {
       console.error("Groq API error:", err);
       explanation = "Explanation could not be generated.";

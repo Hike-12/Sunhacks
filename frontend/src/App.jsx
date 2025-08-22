@@ -21,10 +21,14 @@ import CourseEditor from './components/teacher/CourseEditor';
 import { ThemeProvider } from "./context/ThemeContext";
 import WikipediaShorts, { WikipediaShortsLauncher } from "./components/TikTok";
 
+import PomodoroDial from "./components/Pomodoro";
+import PomodoroFloating from "./components/PomodoroFloating";
 function App() {
   return (
       <ThemeProvider>
     <Router>
+        {/* Place your Navbar here if you have one */}
+        <PomodoroFloating /> {/* <-- Add this line */}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -40,6 +44,7 @@ function App() {
         <Route path="/courses/:courseId/edit" element={<CourseEditor />} />
         <Route path="/courses/:courseId/view" element={<TeacherCourseViewer />} />
         <Route path="/courses/:courseId/take" element={<CourseViewer />} />
+        <Route path="/pomo" element={<PomodoroDial />} />
       </Routes>
     </Router>
     </ThemeProvider>

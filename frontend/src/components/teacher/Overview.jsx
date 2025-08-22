@@ -106,7 +106,7 @@ const Overview = () => {
                   {totalStudents}
                 </div>
                 <div className={`text-base mt-1 ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>
-                  Total Students
+                  Courses Completed
                 </div>
               </div>
             </motion.div>
@@ -146,11 +146,11 @@ const Overview = () => {
                     >
                       {course.title}
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
+                    {/* <div className="flex items-center gap-2 mt-2">
                       <FaUserGraduate className={isDark ? 'text-indigo-400' : 'text-indigo-500'} />
                       <span className={`font-bold ${isDark ? 'text-neutral-200' : 'text-gray-800'}`}>{count}</span>
                       <span className={`text-xs ${isDark ? 'text-neutral-400' : 'text-gray-500'}`}>students</span>
-                    </div>
+                    </div> */}
                   </motion.div>
                 );
               })
