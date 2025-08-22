@@ -34,6 +34,8 @@ const FlashcardGenerator = () => {
     incorrect: 0,
     needsReview: [],
   });
+  // New state to hold user's answers for MCQs
+  const [userAnswers, setUserAnswers] = useState({});
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -113,7 +115,7 @@ const FlashcardGenerator = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
           import.meta.env.VITE_GEMINI_API_KEY,
         {
           method: "POST",
@@ -166,7 +168,7 @@ const FlashcardGenerator = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" +
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
           import.meta.env.VITE_GEMINI_API_KEY,
         {
           method: "POST",
@@ -197,6 +199,7 @@ const FlashcardGenerator = () => {
       if (jsonMatch) {
         const mcqsData = JSON.parse(jsonMatch[0]);
         setMcqs(mcqsData);
+        setUserAnswers({}); // Reset answers when new MCQs are generated
         setActiveTab("mcqs");
         toast.success(`Generated ${mcqsData.length} MCQs!`);
       } else {
@@ -255,6 +258,23 @@ const FlashcardGenerator = () => {
     linkElement.setAttribute("href", dataUri);
     linkElement.setAttribute("download", exportFileDefaultName);
     linkElement.click();
+  };
+
+  // New handler for answering an MCQ
+  const handleMcqAnswer = (questionIndex, selectedOptionIndex) => {
+    // Prevent changing the answer once it has been selected
+    if (userAnswers[questionIndex] !== undefined) return;
+
+    setUserAnswers((prev) => ({
+      ...prev,
+      [questionIndex]: selectedOptionIndex,
+    }));
+  };
+
+  // New handler to reset the MCQ quiz
+  const resetMcqQuiz = () => {
+    setUserAnswers({});
+    toast.info("Quiz has been reset!");
   };
 
   const renderUploadTab = () => (
@@ -620,19 +640,32 @@ const FlashcardGenerator = () => {
   const renderMCQsTab = () => (
     <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center">
-          <FaQuestionCircle
-            className={`text-2xl mr-3 ${
-              isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
-            }`}
-          />
-          <h2
-            className={`text-2xl font-bold ${
-              isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <FaQuestionCircle
+              className={`text-2xl mr-3 ${
+                isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
+              }`}
+            />
+            <h2
+              className={`text-2xl font-bold ${
+                isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+              }`}
+            >
+              Multiple Choice Questions ({mcqs.length})
+            </h2>
+          </div>
+          <button
+            onClick={resetMcqQuiz}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition text-sm ${
+              isDark
+                ? "bg-[#181818] hover:bg-[#222] text-gray-400"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-600"
             }`}
           >
-            Multiple Choice Questions ({mcqs.length})
-          </h2>
+            <FaRedo />
+            <span>Reset Quiz</span>
+          </button>
         </div>
 
         <div className="space-y-6">
@@ -644,8 +677,8 @@ const FlashcardGenerator = () => {
               transition={{ delay: index * 0.1 }}
               className={`p-6 rounded-lg border ${
                 isDark
-                  ? "bg-[#18182b] border-[#a78bfa]"
-                  : "bg-[#ece9ff] border-[#7c3aed]"
+                  ? "bg-[#18182b] border-[#a78bfa]/50"
+                  : "bg-[#ece9ff] border-[#7c3aed]/50"
               }`}
             >
               <h3
@@ -657,29 +690,59 @@ const FlashcardGenerator = () => {
               </h3>
 
               <div className="space-y-3">
-                {mcq.options.map((option, optionIndex) => (
-                  <div
-                    key={optionIndex}
-                    className={`p-3 rounded-lg border transition-colors ${
-                      optionIndex === mcq.correctAnswer
-                        ? isDark
-                          ? "bg-green-900/30 border-green-600 text-green-400"
-                          : "bg-green-100 border-green-300 text-green-700"
-                        : isDark
-                        ? "bg-[#1e1e3a] border-[#333] text-gray-300"
-                        : "bg-gray-50 border-gray-200 text-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>
-                        {String.fromCharCode(65 + optionIndex)}. {option}
-                      </span>
-                      {optionIndex === mcq.correctAnswer && (
-                        <FaCheckCircle className="text-green-500" />
-                      )}
-                    </div>
-                  </div>
-                ))}
+                {mcq.options.map((option, optionIndex) => {
+                  const isAnswered = userAnswers[index] !== undefined;
+                  const isCorrect = optionIndex === mcq.correctAnswer;
+                  const isSelected = userAnswers[index] === optionIndex;
+
+                  let buttonClass = "";
+                  if (isAnswered) {
+                    if (isCorrect) {
+                      // Correct answer is always green after answering
+                      buttonClass = isDark
+                        ? "bg-green-900/50 border-green-600 text-green-300"
+                        : "bg-green-100 border-green-300 text-green-800";
+                    } else if (isSelected && !isCorrect) {
+                      // User's wrong choice is red
+                      buttonClass = isDark
+                        ? "bg-red-900/50 border-red-600 text-red-300"
+                        : "bg-red-100 border-red-300 text-red-800";
+                    } else {
+                      // Other incorrect options are neutral
+                      buttonClass = isDark
+                        ? "bg-[#1e1e3a] border-[#333] text-gray-400"
+                        : "bg-white border-gray-200 text-gray-600";
+                    }
+                  } else {
+                    // Not answered yet, so add hover effect
+                    buttonClass = isDark
+                      ? "bg-[#1e1e3a] border-[#333] hover:bg-[#262650] hover:border-[#a78bfa] text-gray-300"
+                      : "bg-white border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 text-gray-700";
+                  }
+
+                  return (
+                    <button
+                      key={optionIndex}
+                      onClick={() => handleMcqAnswer(index, optionIndex)}
+                      disabled={isAnswered}
+                      className={`w-full text-left p-3 rounded-lg border transition-colors ${buttonClass} ${
+                        !isAnswered ? "cursor-pointer" : "cursor-default"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>
+                          {String.fromCharCode(65 + optionIndex)}. {option}
+                        </span>
+                        {isAnswered && isCorrect && (
+                          <FaCheckCircle className="text-green-500" />
+                        )}
+                        {isAnswered && isSelected && !isCorrect && (
+                          <FaTimesCircle className="text-red-500" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           ))}
