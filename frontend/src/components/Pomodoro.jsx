@@ -135,11 +135,23 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
   const dash = Math.max(0, c * progress);
   const gap = Math.max(0.0001, c - dash);
 
+  // -------------------- Responsive --------------------
+  // Use a smaller dial on mobile
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  const dialSize = isMobile ? 180 : 260;
+  const dialStroke = isMobile ? 10 : 14;
+  const dialR = (dialSize - dialStroke) / 2;
+
   // -------------------- Render --------------------
   // Only Settings Panel
   if (showSettings) {
     return (
-      <div className="w-full h-full min-h-0 bg-neutral-900/60 rounded-2xl border border-neutral-800/60 shadow-xl flex flex-col p-6">
+      <div className="w-full h-full min-h-0 bg-neutral-900/60 rounded-2xl border border-neutral-800/60 shadow-xl flex flex-col p-4 sm:p-6">
         <h2 className="text-sm uppercase tracking-wider text-neutral-400 mb-4">Settings</h2>
         <div className="space-y-5 w-full flex-1 overflow-y-auto">
           <Field label="Focus length (minutes)">
@@ -149,7 +161,7 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
             <NumberInput min={1} max={60} value={settings.breakMinutes} onChange={(v) => setSettings((s) => ({ ...s, breakMinutes: v }))} />
           </Field>
           <ToggleRow label="Auto-switch phases" desc="Automatically jump Focus ↔ Break on finish." checked={settings.autoSwitch} onChange={(v) => setSettings((s) => ({ ...s, autoSwitch: v }))} />
-          <div className="pt-2 flex gap-2 px-12">
+          <div className="pt-2 flex flex-col sm:flex-row gap-2 px-0 sm:px-12">
             <button onClick={() => setSettings(defaultSettings)} className="px-3 py-2 rounded-xl text-sm bg-neutral-800 border border-neutral-700 hover:bg-neutral-700">Reset settings</button>
             <button onClick={() => { if (mode === "focus") setRemainingMs(settings.focusMinutes * 60 * 1000); else setRemainingMs(settings.breakMinutes * 60 * 1000); }} className="px-3 py-2 rounded-xl text-sm bg-indigo-400 text-black hover:bg-purple-500">Apply now</button>
           </div>
@@ -160,7 +172,7 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
         {/* Switch to Timer */}
         <button
           onClick={() => setFlipped(false)}
-          className="mt-6 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-200 hover:bg-neutral-700 text-xs"
+          className="mt-6 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-200 hover:bg-neutral-700 text-xs w-full"
         >
           Back to Timer
         </button>
@@ -170,9 +182,9 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
 
   // Only Timer Dial
   return (
-    <div className="w-full h-full min-h-0 bg-neutral-900/60 rounded-2xl border border-neutral-800/60 shadow-xl flex flex-col items-center p-6">
+    <div className="w-full h-full min-h-0 bg-neutral-900/60 rounded-2xl border border-neutral-800/60 shadow-xl flex flex-col items-center p-4 sm:p-6">
       {/* Header */}
-      <div className="w-full flex items-center justify-between mb-4">
+      <div className="w-full flex flex-col sm:flex-row items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-2.5 w-2.5 rounded-full bg-purple-800/80 ring-4 ring-indigo-400/10" />
           <span className="text-sm tracking-wide uppercase text-neutral-400">Pomodoro</span>
@@ -194,8 +206,8 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
       </div>
 
       {/* Dial */}
-      <div className="relative">
-        <svg width={260} height={260} viewBox="0 0 260 260">
+      <div className="relative w-full flex justify-center">
+        <svg width={dialSize} height={dialSize} viewBox={`0 0 ${dialSize} ${dialSize}`}>
           <defs>
             <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#22d3ee" />
@@ -203,40 +215,54 @@ export default function PomodoroDial({ showSettings, flipped, setFlipped }) {
               <stop offset="100%" stopColor="#f472b6" />
             </linearGradient>
           </defs>
-          <circle cx={130} cy={130} r={116} stroke="rgba(255,255,255,0.08)" strokeWidth={14} fill="none" />
-          <g transform="rotate(-90 130 130)">
+          <circle cx={dialSize / 2} cy={dialSize / 2} r={dialR} stroke="rgba(255,255,255,0.08)" strokeWidth={dialStroke} fill="none" />
+          <g transform={`rotate(-90 ${dialSize / 2} ${dialSize / 2})`}>
             <circle
-              cx={130}
-              cy={130}
-              r={116}
+              cx={dialSize / 2}
+              cy={dialSize / 2}
+              r={dialR}
               stroke="url(#g)"
-              strokeWidth={14}
+              strokeWidth={dialStroke}
               strokeLinecap="round"
-              strokeDasharray={Math.max(0, 2 * Math.PI * 116 * (1 - remainingMs / (Math.max(1, mode === "focus" ? settings.focusMinutes : settings.breakMinutes) * 60 * 1000)) ) + " " + Math.max(0.0001, 2 * Math.PI * 116 - Math.max(0, 2 * Math.PI * 116 * (1 - remainingMs / (Math.max(1, mode === "focus" ? settings.focusMinutes : settings.breakMinutes) * 60 * 1000))))}
+              strokeDasharray={
+                Math.max(
+                  0,
+                  2 * Math.PI * dialR * (1 - remainingMs / (Math.max(1, mode === "focus" ? settings.focusMinutes : settings.breakMinutes) * 60 * 1000))
+                ) +
+                " " +
+                Math.max(
+                  0.0001,
+                  2 * Math.PI * dialR -
+                    Math.max(
+                      0,
+                      2 * Math.PI * dialR * (1 - remainingMs / (Math.max(1, mode === "focus" ? settings.focusMinutes : settings.breakMinutes) * 60 * 1000))
+                    )
+                )
+              }
               fill="none"
             />
           </g>
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-[56px] font-semibold tabular-nums select-none">{timeStr}</div>
+          <div className="text-[40px] sm:text-[56px] font-semibold tabular-nums select-none">{timeStr}</div>
           <div className="mt-2 text-xs tracking-widest uppercase text-neutral-400">{mode === "focus" ? "Focus" : "Break"} time</div>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-col sm:flex-row items-center gap-3 w-full">
         {!isRunning ? (
-          <button onClick={start} className="px-5 py-2.5 rounded-xl bg-indigo-500 text-black font-semibold hover:bg-indigo-400 transition">Start</button>
+          <button onClick={start} className="px-5 py-2.5 rounded-xl bg-indigo-500 text-black font-semibold hover:bg-indigo-400 transition w-full sm:w-auto">Start</button>
         ) : (
-          <button onClick={pause} className="px-5 py-2.5 rounded-xl bg-indigo-400 text-black font-semibold hover:bg-purple-300 transition">Pause</button>
+          <button onClick={pause} className="px-5 py-2.5 rounded-xl bg-indigo-400 text-black font-semibold hover:bg-purple-300 transition w-full sm:w-auto">Pause</button>
         )}
-        <button onClick={reset} className="px-4 py-2.5 rounded-xl bg-neutral-800 text-neutral-200 hover:bg-neutral-700 border border-neutral-700 transition">Reset</button>
+        <button onClick={reset} className="px-4 py-2.5 rounded-xl bg-neutral-800 text-neutral-200 hover:bg-neutral-700 border border-neutral-700 transition w-full sm:w-auto">Reset</button>
       </div>
 
       {/* Switch to Settings */}
       <button
         onClick={() => setFlipped(true)}
-        className="mt-6 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-200 hover:bg-neutral-700 text-xs"
+        className="mt-6 px-4 py-2 rounded-lg bg-neutral-800 text-neutral-200 hover:bg-neutral-700 text-xs w-full sm:w-auto"
       >
         Settings
       </button>
@@ -264,7 +290,7 @@ function NumberInput({ value, onChange, min = 0, max = 999 }) {
         min={min}
         max={max}
         onChange={(e) => onChange(Math.max(min, Math.min(max, Number(e.target.value))))}
-        className="w-24 px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-00/40"
+        className="w-16 sm:w-24 px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-sky-00/40"
       />
       <button onClick={() => onChange(Math.max(min, Math.min(max, value + 1)))} className="px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 hover:bg-neutral-700">+</button>
     </div>
@@ -273,7 +299,7 @@ function NumberInput({ value, onChange, min = 0, max = 999 }) {
 
 function ToggleRow({ label, desc, checked, onChange }) {
   return (
-    <div className="flex items-start justify-between gap-4 p-3 rounded-xl bg-neutral-900 border border-neutral-800">
+    <div className="flex flex-col sm:flex-row items-start justify-between gap-4 p-3 rounded-xl bg-neutral-900 border border-neutral-800">
       <div>
         <div className="text-sm text-neutral-200">{label}</div>
         {desc && <div className="text-xs text-neutral-500 mt-1">{desc}</div>}
