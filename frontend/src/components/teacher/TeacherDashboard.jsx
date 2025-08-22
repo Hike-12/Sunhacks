@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
 import TeacherCommunity from "./TeacherCommunity";
+import AchievementSection from "./Achievements";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -137,6 +138,8 @@ const TeacherDashboard = () => {
         return <TeacherCommunity />;
       case "analytics":
         return <Analytics />;
+      case "achievements":
+        return <AchievementSection />;
       case "viva-preperation":
         return <InterviewPrep />;
       case "flashcard-generator":

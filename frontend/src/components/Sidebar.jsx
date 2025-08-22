@@ -8,6 +8,7 @@ import {
   FaLanguage,
   FaBrain,
   FaRoute,
+  FaMedal,
   FaUsers,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -17,10 +18,11 @@ const navItems = [
   { key: "overview", label: "Overview", icon: <FaHome /> },
   { key: "courses", label: "Courses", icon: <FaBook /> },
   { key: "community", label: "Community", icon: <FaUsers /> },
-  // { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
   { key: "viva-preperation", label: "Viva Preparation", icon: <FaLanguage /> },
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
   { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
+  { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
+  { key: "achievements", label: "Achievements", icon: <FaMedal /> },
 ];
 
 const Sidebar = ({ activeKey, setActiveTab }) => {
