@@ -5,23 +5,23 @@ import { toast } from "react-toastify";
 import { SidebarProvider } from "../../context/SidebarContext";
 import DashboardLayout from "./DashboardLayout";
 import Overview from "./Overview";
-import Courses from "./Courses"; // Make sure the import path is correct
-import CreateCourse from "./CreateCourse"; // import at the top
-import Analytics from "./Analytics"; // <-- Add this import
-import { useTheme } from "../../context/ThemeContext"; // Add this import
+import Courses from "./Courses";
+import CreateCourse from "./CreateCourse";
+import Analytics from "./Analytics";
+import FlashcardGenerator from "../FlashcardGenerator";
+import PersonalizedStudyFlow from "../PersonalizedStudyFlow";
+import { useTheme } from "../../context/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(
-    "overview"
-  );
+  const [activeTab, setActiveTab] = useState("overview");
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { isDark } = useTheme(); // Use theme context
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -76,10 +76,6 @@ const TeacherDashboard = () => {
     }, 1000);
   };
 
-  const handleCreateCourse = () => {
-    navigate("/create-course");
-  };
-
   // Sidebar navigation items
   const teacherNavItems = [
     {
@@ -100,6 +96,18 @@ const TeacherDashboard = () => {
       active: activeTab === "analytics",
       onClick: () => setActiveTab("analytics"),
     },
+    {
+      id: "flashcard-generator",
+      label: "Smart Flashcards",
+      active: activeTab === "flashcard-generator",
+      onClick: () => setActiveTab("flashcard-generator"),
+    },
+    {
+      id: "study-flow",
+      label: "Study Flow",
+      active: activeTab === "study-flow",
+      onClick: () => setActiveTab("study-flow"),
+    },
   ];
 
   // Render content based on active tab
@@ -112,9 +120,11 @@ const TeacherDashboard = () => {
       case "create-course":
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "analytics":
-        return <Analytics />; 
-      case "my-courses":
-        return <MyCourses />;
+        return <Analytics />;
+      case "flashcard-generator":
+        return <FlashcardGenerator />;
+      case "study-flow":
+        return <PersonalizedStudyFlow />;
       case "pdf-translator":
         return <PDFTranslator />;
       default:
@@ -155,8 +165,10 @@ const TeacherDashboard = () => {
         onLogout={handleLogout}
         activeKey={activeTab}
         setActiveTab={setActiveTab}
-        title="Instructor Portal"
-        subtitle={`Language: ${user.language || "Hindi"} | Role: Educator`}
+        title="StudyGenie Dashboard"
+        subtitle={`AI-Powered Learning Assistant | ${
+          user.language || "English"
+        }`}
       >
         {renderContent()}
       </DashboardLayout>

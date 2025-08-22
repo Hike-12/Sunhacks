@@ -5,24 +5,25 @@ import {
   FaChartBar,
   FaSignOutAlt,
   FaHome,
-  FaLanguage 
+  FaLanguage,
+  FaBrain,
+  FaRoute,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Courses from "./teacher/Courses";
-import Overview from "../components/teacher/Overview";
 import { useTheme } from "../context/ThemeContext";
 
 const navItems = [
   { key: "overview", label: "Overview", icon: <FaHome /> },
   { key: "courses", label: "Courses", icon: <FaBook /> },
   { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
-   { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
+  { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
+  { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
+  { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
 ];
 
 const Sidebar = ({ activeKey, setActiveTab }) => {
   const [collapsed, setCollapsed] = useState(window.innerWidth < 768);
   const { isDark } = useTheme();
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,7 +35,7 @@ const Sidebar = ({ activeKey, setActiveTab }) => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/login"); // Hard redirect to clear all state
+    navigate("/login");
   };
 
   return (
@@ -127,33 +128,6 @@ const Sidebar = ({ activeKey, setActiveTab }) => {
         </button>
       </div>
     </aside>
-  );
-};
-
-const TeacherDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview"); // or "courses", etc.
-
-  // ...other logic...
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "courses":
-        return <Courses />;
-      case "overview":
-        return <Overview />;
-      // ...other cases...
-      default:
-        return <Overview />;
-    }
-  };
-
-  return (
-    <DashboardLayout
-      activeKey={activeTab}
-      // ...other props...
-    >
-      {renderContent()}
-    </DashboardLayout>
   );
 };
 
