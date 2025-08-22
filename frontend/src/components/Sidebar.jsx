@@ -17,6 +17,7 @@ const navItems = [
   { key: "courses", label: "Courses", icon: <FaBook /> },
   { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
    { key: "pdf-translator", label: "Translator", icon: <FaLanguage /> },
+   { key: "viva-preperation", label: "Viva Preparation", icon: <FaLanguage /> },
 ];
 
 const Sidebar = ({ activeKey, setActiveTab }) => {

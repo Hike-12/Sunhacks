@@ -8,6 +8,7 @@ const studentRoutes = require("./routes/studentRoutes");
 const achievementRoutes = require("./routes/achievementRoutes");
 const diagramRoutes = require('./routes/diagramRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const interviewRoutes = require('./routes/interviewRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use("/api/student", studentRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/diagram', diagramRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/interview',interviewRoutes);
 
 // Basic route
 app.get("/", (req, res) => {

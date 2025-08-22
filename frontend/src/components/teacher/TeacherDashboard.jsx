@@ -11,6 +11,7 @@ import Analytics from "./Analytics"; // <-- Add this import
 import { useTheme } from "../../context/ThemeContext"; // Add this import
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
+import InterviewPrep from "../InterviewPrep";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -100,6 +101,12 @@ const TeacherDashboard = () => {
       active: activeTab === "analytics",
       onClick: () => setActiveTab("analytics"),
     },
+    {
+      id: "viva-preperation",
+      label: "Viva Preperation",
+      active: activeTab === "viva-preperation",
+      onClick: () => setActiveTab("viva-preperation"),
+    },
   ];
 
   // Render content based on active tab
@@ -113,8 +120,10 @@ const TeacherDashboard = () => {
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "analytics":
         return <Analytics />; 
-      case "my-courses":
-        return <MyCourses />;
+      case "viva-preperation":
+        return <InterviewPrep />
+      // case "my-courses":
+      //   return <MyCourses />;
       case "pdf-translator":
         return <PDFTranslator />;
       default:
