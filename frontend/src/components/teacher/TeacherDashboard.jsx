@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
@@ -16,6 +16,7 @@ import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
 import TeacherCommunity from "./TeacherCommunity";
 import AchievementSection from "./Achievements";
+import EnrolledCourses from "./EnrolledCourses";
 
 const TeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -94,6 +95,12 @@ const TeacherDashboard = () => {
       onClick: () => setActiveTab("courses"),
     },
     {
+      id: "enrolled",
+      label: "Enrolled",
+      active: activeTab === "enrolled",
+      onClick: () => setActiveTab("enrolled"),
+    },
+    {
       id: "community",
       label: "Community",
       active: activeTab === "community",
@@ -132,6 +139,8 @@ const TeacherDashboard = () => {
         return <Overview />;
       case "courses":
         return <Courses setActiveTab={setActiveTab} />;
+      case "enrolled":
+        return <EnrolledCourses />;
       case "create-course":
         return <CreateCourse setActiveTab={setActiveTab} />;
       case "community":

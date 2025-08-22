@@ -577,8 +577,10 @@ const enrollInCourse = async (req, res) => {
 
     // create progress record with user reference (fixes "user is required" validation error)
     const progress = new Progress({
-      user: mongoose.Types.ObjectId(userId),
-      course: mongoose.Types.ObjectId(courseId),
+      // use 'new' for ObjectId or pass the string; also set both 'user' and 'student'
+      user: new mongoose.Types.ObjectId(userId),
+      student: new mongoose.Types.ObjectId(userId),
+      course: new mongoose.Types.ObjectId(courseId),
       currentSection: 0,
       currentTopic: 0,
       completed: false,
@@ -600,13 +602,11 @@ const enrollInCourse = async (req, res) => {
     return res.json({ success: true, message: "Enrolled", progress });
   } catch (err) {
     console.error("Enroll error:", err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Enrollment failed",
-        error: err.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Enrollment failed",
+      error: err.message,
+    });
   }
 };
 

@@ -30,6 +30,8 @@ const Sidebar = ({ activeKey, setActiveTab }) => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
+  // enrolled list removed from Sidebar — use dedicated 'Enrolled' tab instead
+
   useEffect(() => {
     const handleResize = () => setCollapsed(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
@@ -113,6 +115,8 @@ const Sidebar = ({ activeKey, setActiveTab }) => {
             </button>
           ))}
         </nav>
+
+        {/* Enrolled quick list removed — use Enrolled tab in dashboard */}
       </div>
       <div className="flex flex-col gap-2 px-2 pb-4">
         <button
