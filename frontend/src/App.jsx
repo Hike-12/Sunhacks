@@ -27,7 +27,6 @@ import { translatePage } from "./lib/translatePage";
 import { useEffect,useState } from "react";
 import { restoreTranslation } from "./lib/restoreTranslation";
 
-
 export function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
@@ -61,9 +60,6 @@ function App() {
 
   return (
     <ThemeProvider>
-      <button onClick={() => translatePage("mr")}>
-      Translate to Marathi
-    </button>
     <InstallPWAButton />
       <Router>
         {/* Place your Navbar here if you have one */}
