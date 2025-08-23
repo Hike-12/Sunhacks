@@ -380,13 +380,13 @@ const InterviewPrep = () => {
         const user = JSON.parse(localStorage.getItem("firebaseUser"));
         const firebaseUid = user?.uid || localStorage.getItem("firebaseUid");
         if (firebaseUid) {
-          const jobsRes = await fetch(`http://localhost:5000/jobs/wishlist/user/${firebaseUid}`);
+          const jobsRes = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/jobs/wishlist/user/${firebaseUid}`);
           const jobsJson = await jobsRes.json();
           if (Array.isArray(jobsJson.wishlist) && jobsJson.wishlist.length > 0) jobsData = jobsJson.wishlist;
         }
       } catch {}
       try {
-        const resumeRes = await fetch(`http://localhost:5000/profile/resume`, {
+        const resumeRes = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/profile/resume`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
@@ -403,7 +403,7 @@ const InterviewPrep = () => {
   // EXISTING: Initialize interview
   const startInterview = async () => {
   try {
-    const res = await fetch(`http://localhost:5000/interview/questions`, {
+    const res = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/interview/questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -641,7 +641,7 @@ const InterviewPrep = () => {
       
       let authToken = localStorage.getItem("authToken");
       
-      const res = await fetch(`http://localhost:5000/interview/submit`, {
+      const res = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/interview/submit`, {
         method: "POST",
         headers: {
           ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
@@ -652,7 +652,7 @@ const InterviewPrep = () => {
       if (!res.ok) {
         if (res.status === 401) {
           console.warn("Auth token expired, submitting without authentication");
-          const retryRes = await fetch(`http://localhost:5000/interview/submit`, {
+          const retryRes = await fetch(`${import.meta.env.VITE_NODE_BASE_API_URL}/interview/submit`, {
             method: "POST",
             body: formData,
           });

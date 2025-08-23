@@ -105,7 +105,7 @@ const DoubtSolverChatbot = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/coach`,
+        `${import.meta.env.VITE_NODE_BASE_API_URL}/api/coach`,
         {
           message: question.trim(),
           personality,
