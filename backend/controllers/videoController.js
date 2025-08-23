@@ -3,7 +3,9 @@ const fs = require("fs").promises;
 const fsSync = require("fs");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const gTTS = require("gtts");
+const ffmpegPath = require('ffmpeg-static');
 const ffmpeg = require("fluent-ffmpeg");
+ffmpeg.setFfmpegPath(ffmpegPath);
 const axios = require("axios");
 const { getImageForKeyword } = require("../services/unsplashService");
 
