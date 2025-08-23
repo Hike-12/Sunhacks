@@ -27,7 +27,6 @@ import { translatePage } from "./lib/translatePage";
 import { useEffect } from "react";
 import { restoreTranslation } from "./lib/restoreTranslation";
 
-
 function App() {
   useEffect(() => {
     restoreTranslation();
@@ -35,9 +34,6 @@ function App() {
 
   return (
     <ThemeProvider>
-      <button onClick={() => translatePage("mr")}>
-      Translate to Marathi
-    </button>
       <Router>
         {/* Place your Navbar here if you have one */}
         <PomodoroFloating /> {/* <-- Add this line */}
