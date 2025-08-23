@@ -24,9 +24,35 @@ import TeacherCommunity from "./components/teacher/TeacherCommunity"; // <--- ad
 import PomodoroDial from "./components/Pomodoro";
 import PomodoroFloating from "./components/PomodoroFloating";
 import { translatePage } from "./lib/translatePage";
-import { useEffect } from "react";
+import { useEffect,useState } from "react";
 import { restoreTranslation } from "./lib/restoreTranslation";
 
+
+export function InstallPWAButton() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
+    }
+  };
+
+  if (!deferredPrompt) return null;
+
+  return (
+    <button onClick={handleInstallClick}>
+      Install App
+    </button>
+  );
+}
 
 function App() {
   useEffect(() => {
@@ -38,6 +64,7 @@ function App() {
       <button onClick={() => translatePage("mr")}>
       Translate to Marathi
     </button>
+    <InstallPWAButton />
       <Router>
         {/* Place your Navbar here if you have one */}
         <PomodoroFloating /> {/* <-- Add this line */}
