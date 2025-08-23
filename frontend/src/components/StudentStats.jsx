@@ -165,7 +165,7 @@ const StudentStats = () => {
     };
 
     const shareToSocial = (platform) => {
-        const message = `Check out my learning progress on BharatAI! 📚 ${stats?.coursesCompleted || 0} courses completed, ${stats?.totalStudyTime || 0} minutes of study time, and ${achievementStats?.unlocked || 0} achievements unlocked! 🎯`;
+        const message = `Check out my learning progress on StudyAid! 📚 ${stats?.coursesCompleted || 0} courses completed, ${stats?.totalStudyTime || 0} minutes of study time, and ${achievementStats?.unlocked || 0} achievements unlocked! 🎯`;
         
         const urls = {
             twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(shareableLink)}`,

@@ -11,6 +11,7 @@ import {
   FaMedal,
   FaRobot,
   FaUsers,
+  FaVideo,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -23,6 +24,7 @@ const navItems = [
   { key: "flashcard-generator", label: "Smart Flashcards", icon: <FaBrain /> },
   { key: "study-flow", label: "Study Flow", icon: <FaRoute /> },
   { key: "doubt-solver", label: "Doubt Solver", icon: <FaRobot /> },
+  { key: "video-generator", label: "AI Video Generator", icon: <FaVideo /> },
   { key: "analytics", label: "Analytics", icon: <FaChartBar /> },
   { key: "achievements", label: "Achievements", icon: <FaMedal /> },
 ];

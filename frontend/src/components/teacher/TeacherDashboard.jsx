@@ -14,6 +14,7 @@ import { useTheme } from "../../context/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import PDFTranslator from "../translatePart/PDFTranslator";
 import InterviewPrep from "../InterviewPrep";
+import VideoGenerator from "../VideoGenerator"; // Import the new component
 import TeacherCommunity from "./TeacherCommunity";
 import AchievementSection from "./Achievements";
 import DoubtSolverChatbot from "./Chatbot";
@@ -131,6 +132,12 @@ const TeacherDashboard = () => {
       active: activeTab === "study-flow",
       onClick: () => setActiveTab("study-flow"),
     },
+    {
+      id: "video-generator",
+      label: "AI Video Generator",
+      active: activeTab === "video-generator",
+      onClick: () => setActiveTab("video-generator"),
+    },
   ];
 
   // Render content based on active tab
@@ -158,8 +165,11 @@ const TeacherDashboard = () => {
         return <FlashcardGenerator />;
       case "study-flow":
         return <PersonalizedStudyFlow />;
+        return <PersonalizedStudyFlow />;
       case "pdf-translator":
         return <PDFTranslator />;
+      case "video-generator":
+        return <VideoGenerator />;
       default:
         return <Overview />;
     }
