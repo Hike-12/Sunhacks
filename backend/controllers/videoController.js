@@ -4,6 +4,8 @@ const fsSync = require("fs");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 const gTTS = require("gtts");
 const ffmpeg = require("fluent-ffmpeg");
+const axios = require("axios");
+const { getImageForKeyword } = require("../services/unsplashService");
 
 // ensure font available (system fallback OK)
 const FONT_FAMILY = "Arial";
@@ -13,36 +15,71 @@ if (!fsSync.existsSync(outputsDir))
   fsSync.mkdirSync(outputsDir, { recursive: true });
 
 // create a single slide image (no gradients, clean black/white palette)
-async function renderSlideImage(text, index) {
+// now accepts optional bgImageUrl to use as slide background (fetched from Unsplash)
+async function renderSlideImage(text, index, bgImageUrl = null) {
   const width = 1280;
   const height = 720;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
-  // clean black/white palette
+  // Attempt to draw background image if provided
+  let drewBgImage = false;
+  if (bgImageUrl) {
+    try {
+      const resp = await axios.get(bgImageUrl, {
+        responseType: "arraybuffer",
+        timeout: 10000,
+      });
+      const buffer = Buffer.from(resp.data, "binary");
+      const img = await loadImage(buffer);
+      // cover the canvas (cover behavior)
+      const ratio = Math.max(width / img.width, height / img.height);
+      const iw = img.width * ratio;
+      const ih = img.height * ratio;
+      const ix = (width - iw) / 2;
+      const iy = (height - ih) / 2;
+      ctx.drawImage(img, ix, iy, iw, ih);
+      drewBgImage = true;
+    } catch (e) {
+      console.warn(
+        "Failed to load background image, falling back to solid bg:",
+        e.message || e
+      );
+      drewBgImage = false;
+    }
+  }
+
+  // clean black/white palette fallback if no image
   const BG_COLORS = ["#ffffff", "#0b0b0b"];
-  const bg = BG_COLORS[index % BG_COLORS.length];
-  const isDark = bg !== "#ffffff";
+  const bg = drewBgImage ? null : BG_COLORS[index % BG_COLORS.length];
+  const isDark = bg === null ? false /*image may be any*/ : bg !== "#ffffff";
 
-  // background
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
+  // background when no image
+  if (!drewBgImage) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+  }
 
-  // subtle top bar
-  ctx.fillStyle = isDark ? "#0b0b0b" : "#f3f4f6";
-  ctx.fillRect(0, 0, width, 100);
+  // overlay to ensure text readability when image used (and also subtle when using colors)
+  if (drewBgImage) {
+    // darken/brighten overlay depending on perceived background
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(0, 0, width, height);
+  } else {
+    // subtle top bar background
+    ctx.fillStyle = isDark ? "#0b0b0b" : "#f3f4f6";
+    ctx.fillRect(0, 0, width, 100);
+  }
 
   // Title text
-  ctx.fillStyle = isDark ? "#ffffff" : "#0b0b0b";
+  ctx.fillStyle = "#ffffff";
   ctx.font = `bold 40px ${FONT_FAMILY}`;
   ctx.textAlign = "left";
   ctx.fillText(text.title || "Slide", 36, 64);
 
-  // Optional icon (simple inline SVG book) rendered as image
+  // Optional icon (simple inline SVG book) rendered as image (white icon for contrast)
   try {
-    const iconSVG = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 24 24' fill='${
-      isDark ? "#ffffff" : "#0b0b0b"
-    }'><path d='M3 5a2 2 0 0 1 2-2h11v2H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h11v2H5a2 2 0 0 1-2-2V5z'/><path d='M21 7h-2v13h2a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>`;
+    const iconSVG = `<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 24 24' fill='#ffffff'><path d='M3 5a2 2 0 0 1 2-2h11v2H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h11v2H5a2 2 0 0 1-2-2V5z'/><path d='M21 7h-2v13h2a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z'/></svg>`;
     const iconDataUri =
       "data:image/svg+xml;charset=utf-8," + encodeURIComponent(iconSVG);
     const iconImg = await loadImage(iconDataUri);
@@ -53,7 +90,7 @@ async function renderSlideImage(text, index) {
 
   // Body text
   const body = text.content || "";
-  ctx.fillStyle = isDark ? "#e5e7eb" : "#111827";
+  ctx.fillStyle = "#ffffff";
   ctx.font = `26px ${FONT_FAMILY}`;
   ctx.textAlign = "left";
 
@@ -87,7 +124,7 @@ async function renderSlideImage(text, index) {
   }
 
   // small footer / credit
-  ctx.fillStyle = isDark ? "#9ca3af" : "#6b7280";
+  ctx.fillStyle = "#cbd5e1";
   ctx.font = `16px ${FONT_FAMILY}`;
   ctx.textAlign = "right";
   ctx.fillText("StudyAid • AI Slide", width - 24, height - 20);
@@ -251,11 +288,23 @@ const createTopicVideo = async (req, res) => {
         .json({ success: false, message: "Failed to generate slides" });
     }
 
+    // Fetch one related Unsplash image per slide (use topic + slide title as keyword)
+    let bgImages = [];
+    try {
+      bgImages = await Promise.all(
+        slidesMeta.map((s) => getImageForKeyword(`${topic} ${s.title || ""}`))
+      );
+    } catch (e) {
+      console.warn("Error fetching background images:", e.message || e);
+      bgImages = slidesMeta.map(() => null);
+    }
+
     const slideVideos = [];
     for (let i = 0; i < slidesMeta.length; i++) {
       const meta = slidesMeta[i];
-      // render image locally from meta (no external image API)
-      const imagePath = await renderSlideImage(meta, i);
+      const bgImageUrl = bgImages[i] || null;
+      // render image locally from meta (use Unsplash image when available)
+      const imagePath = await renderSlideImage(meta, i, bgImageUrl);
       // get narration
       const audioPath = await generateTTS(meta.content || `${meta.title}`);
       // create per-slide video (duration provided by model)
