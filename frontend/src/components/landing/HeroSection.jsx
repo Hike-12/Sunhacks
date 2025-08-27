@@ -11,12 +11,12 @@ const HeroSection = () => {
   const tabs = [
     {
       id: "study-flow",
-      label: "Personalized Study Flow",
+      label: "Flow",
       image: "/StudyFlow.png",
     },
-    { id: "flashcards", label: "Flashcards  ", image: "/FlashCards.png" },
+    { id: "flashcards", label: "Cards  ", image: "/FlashCards.png" },
     { id: "quizzes", label: "Quizzes", image: "/Quizzes.png" },
-    { id: "dashboard", label: "Progress Dashboard", image: "/dashboard.png" },
+    { id: "dashboard", label: "Dashboard", image: "/dashboard.png" },
   ];
 
   return (
@@ -135,7 +135,7 @@ const HeroSection = () => {
               className={`
                 flex space-x-1 p-2 border-b
                 ${isDark ? "border-[#f8f8f8]/20" : "border-[#080808]/20"}
-                relative justify-between px-10
+                relative justify-between px-2 md:px-10
               `}
             >
               {tabs.map((tab) => (
