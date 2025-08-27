@@ -287,18 +287,6 @@ const FlashcardGenerator = () => {
     }));
   };
 
-  const exportFlashcards = () => {
-    const dataStr = JSON.stringify(flashcards, null, 2);
-    const dataUri =
-      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const exportFileDefaultName = "flashcards.json";
-
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", exportFileDefaultName);
-    linkElement.click();
-  };
-
   // New handler for answering an MCQ
   const handleMcqAnswer = (questionIndex, selectedOptionIndex) => {
     if (userAnswers[questionIndex] !== undefined) return;
@@ -469,17 +457,6 @@ const FlashcardGenerator = () => {
             >
               <FaPlay />
               <span className="text-sm sm:text-base">Study Mode</span>
-            </button>
-            <button
-              onClick={exportFlashcards}
-              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition ${
-                isDark
-                  ? "bg-[#181818] hover:bg-[#222] text-gray-400"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-              }`}
-            >
-              <FaDownload />
-              <span className="text-sm sm:text-base">Export</span>
             </button>
           </div>
         </div>
