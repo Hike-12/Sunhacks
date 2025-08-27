@@ -1,20 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useTheme } from "../context/ThemeContext";
-
-const languages = [
-  "Hindi",
-  "Marathi",
-  "Kannada",
-  "Bengali",
-  "Tamil",
-  "Telugu",
-  "Gujarati",
-  "English",
-];
 
 const Signup = () => {
   const { isDark } = useTheme();
@@ -23,8 +11,6 @@ const Signup = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    language: "Hindi",
-    role: "student", // Default role set to student
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -82,8 +68,6 @@ const Signup = () => {
             name: formData.name,
             email: formData.email,
             password: formData.password,
-            language: formData.language,
-            role: "teacher", // Always send teacher
           }),
         }
       );
@@ -210,12 +194,15 @@ const Signup = () => {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 flex items-center justify-center ${
+      className={`min-h-screen flex items-center justify-center px-2 mx-2 sm:px-4 transition-colors duration-300 ${
         isDark ? "bg-[#080808]" : "bg-[#f8f8f8]"
       }`}
     >
-      <div className="w-full max-w-md">
-        <Link to="/" className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer">
+      <div className="w-full max-w-md sm:max-w-lg mx-auto">
+        <Link
+          to="/"
+          className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer"
+        >
           <img
             src="/logo.png"
             alt="StudyGenie Logo"
@@ -236,7 +223,7 @@ const Signup = () => {
                 ? "bg-[#181818] border border-[#23234a]"
                 : "bg-white border border-[#e5e7eb]"
             }
-            rounded-2xl p-8 shadow-xl transition-all duration-200
+            rounded-2xl p-6 sm:p-8 shadow-xl transition-all duration-200
           `}
         >
           <form
@@ -251,12 +238,13 @@ const Signup = () => {
             className="space-y-4"
           >
             {renderStep()}
-            <div className="flex justify-between mt-6">
+            {/* Removed Preferred Language select */}
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-2">
               {step > 1 && (
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                     isDark
                       ? "bg-[#23234a] text-[#f8f8f8] hover:bg-[#18182b]"
                       : "bg-[#ece9ff] text-[#222052] hover:bg-[#e0e7ff]"
@@ -268,7 +256,7 @@ const Signup = () => {
               {step < 2 ? (
                 <button
                   type="submit"
-                  className={`ml-auto px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                  className={`w-full sm:w-auto ml-auto px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                     isDark
                       ? "bg-[#4a4494] text-[#f8f8f8] hover:bg-[#3d3a7a]"
                       : "bg-[#222052] text-[#f8f8f8] hover:bg-[#1a1840]"
@@ -280,7 +268,7 @@ const Signup = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`ml-auto px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                  className={`w-full sm:w-auto ml-auto px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
                     isDark
                       ? "bg-[#4a4494] text-[#f8f8f8] hover:bg-[#3d3a7a]"
                       : "bg-[#222052] text-[#f8f8f8] hover:bg-[#1a1840]"
@@ -297,16 +285,13 @@ const Signup = () => {
                 </button>
               )}
             </div>
-            <div className="text-center mt-4 flex justify-between">
+            <div className="text-center mt-4">
               <Link
                 to="/login"
-                className={`underline underline-offset-2 ${
-                  isDark
-                    ? "text-[#a78bfa] hover:text-[#f8f8f8]"
-                    : "text-[#7c3aed] hover:text-[#222052]"
-                } transition-colors`}
+                className={`text-[#7c3aed] transition-colors`}
               >
-                Already have an account? Sign in
+                Already have an account?{" "}
+                <span className="underline underline-offset-2">Sign In</span>
               </Link>
             </div>
           </form>

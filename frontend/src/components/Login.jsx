@@ -70,7 +70,10 @@ const Login = () => {
     >
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer">
+          <Link
+            to="/"
+            className="flex flex-row items-center justify-center gap-4 mb-6 cursor-pointer"
+          >
             <img
               src="/logo.png"
               alt="E-Gurukul Logo"
@@ -96,7 +99,7 @@ const Login = () => {
           >
             <form onSubmit={handleSubmit} className="space-y-5">
               <h2
-                className={`text-xl font-semibold text-center mb-2 ${
+                className={`text-xl font-medium text-center mb-2 ${
                   isDark ? "text-[#f8f8f8]" : "text-[#222052]"
                 }`}
               >
@@ -161,21 +164,19 @@ const Login = () => {
                 )}
               </button>
               <div className="text-center flex justify-between">
-                
-                <Link
-                  to="/signup"
+                <span
                   className={`
-                                        underline underline-offset-2
-                                        ${
-                                          isDark
-                                            ? "text-[#a78bfa] hover:text-[#f8f8f8]"
-                                            : "text-[#7c3aed] hover:text-[#222052]"
-                                        }
-                                        transition-colors
-                                    `}
+                    ${isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"}
+                  `}
                 >
-                  New user? Create an account
-                </Link>
+                  New user?{" "}
+                  <Link
+                    to="/signup"
+                    className="underline underline-offset-2"
+                  >
+                    Create an account
+                  </Link>
+                </span>
               </div>
             </form>
           </div>
