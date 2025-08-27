@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaUpload,
@@ -36,6 +36,32 @@ const FlashcardGenerator = () => {
   });
   // New state to hold user's answers for MCQs
   const [userAnswers, setUserAnswers] = useState({});
+
+  // Load flashcards, mcqs, userAnswers, studyStats from localStorage on mount
+  useEffect(() => {
+    const savedFlashcards = localStorage.getItem("flashcards");
+    const savedMcqs = localStorage.getItem("mcqs");
+    const savedUserAnswers = localStorage.getItem("userAnswers");
+    const savedStudyStats = localStorage.getItem("studyStats");
+    if (savedFlashcards) setFlashcards(JSON.parse(savedFlashcards));
+    if (savedMcqs) setMcqs(JSON.parse(savedMcqs));
+    if (savedUserAnswers) setUserAnswers(JSON.parse(savedUserAnswers));
+    if (savedStudyStats) setStudyStats(JSON.parse(savedStudyStats));
+  }, []);
+
+  // Save flashcards, mcqs, userAnswers, studyStats to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("flashcards", JSON.stringify(flashcards));
+  }, [flashcards]);
+  useEffect(() => {
+    localStorage.setItem("mcqs", JSON.stringify(mcqs));
+  }, [mcqs]);
+  useEffect(() => {
+    localStorage.setItem("userAnswers", JSON.stringify(userAnswers));
+  }, [userAnswers]);
+  useEffect(() => {
+    localStorage.setItem("studyStats", JSON.stringify(studyStats));
+  }, [studyStats]);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -220,23 +246,36 @@ const FlashcardGenerator = () => {
     setStudyStats({ correct: 0, incorrect: 0, needsReview: [] });
   };
 
+  // Active recall: track correct/incorrect answers and show review session
   const handleCardResponse = (isCorrect) => {
     const newStats = { ...studyStats };
     if (isCorrect) {
       newStats.correct += 1;
     } else {
       newStats.incorrect += 1;
-      newStats.needsReview.push(currentCardIndex);
+      if (!newStats.needsReview.includes(currentCardIndex)) {
+        newStats.needsReview.push(currentCardIndex);
+      }
     }
     setStudyStats(newStats);
 
     if (currentCardIndex < flashcards.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1);
       setShowAnswer(false);
+    } else if (newStats.needsReview.length > 0) {
+      setCurrentCardIndex(newStats.needsReview[0]);
+      setStudyStats({
+        ...newStats,
+        needsReview: newStats.needsReview.slice(1),
+      });
+      setShowAnswer(false);
+      toast.info(
+        `Reviewing cards you marked as "Need Review". ${newStats.needsReview.length} left.`
+      );
     } else {
       setStudyMode(false);
       toast.success(
-        `Study session complete! Correct: ${newStats.correct}, Needs review: ${newStats.needsReview.length}`
+        `Study session complete! Correct: ${newStats.correct}, Needs review: ${newStats.incorrect}`
       );
     }
   };
@@ -262,7 +301,6 @@ const FlashcardGenerator = () => {
 
   // New handler for answering an MCQ
   const handleMcqAnswer = (questionIndex, selectedOptionIndex) => {
-    // Prevent changing the answer once it has been selected
     if (userAnswers[questionIndex] !== undefined) return;
 
     setUserAnswers((prev) => ({
@@ -271,24 +309,23 @@ const FlashcardGenerator = () => {
     }));
   };
 
-  // New handler to reset the MCQ quiz
   const resetMcqQuiz = () => {
     setUserAnswers({});
     toast.info("Quiz has been reset!");
   };
 
   const renderUploadTab = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-4 gap-2">
             <FaBrain
-              className={`text-4xl mr-3 ${
+              className={`text-4xl mr-0 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-3xl font-bold ${
+              className={`text-2xl sm:text-3xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -296,7 +333,7 @@ const FlashcardGenerator = () => {
             </h2>
           </div>
           <p
-            className={`text-lg ${
+            className={`text-base sm:text-lg ${
               isDark ? "text-gray-400" : "text-gray-600"
             } mb-8`}
           >
@@ -305,7 +342,7 @@ const FlashcardGenerator = () => {
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+          className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${
             isDark
               ? "border-[#a78bfa]/30 hover:border-[#a78bfa]/50 bg-[#18182b]/30"
               : "border-[#7c3aed]/30 hover:border-[#7c3aed]/50 bg-[#ece9ff]/30"
@@ -320,21 +357,21 @@ const FlashcardGenerator = () => {
           />
           <label htmlFor="pdf-upload" className="cursor-pointer">
             <FaFilePdf
-              className={`mx-auto text-6xl mb-4 ${
+              className={`mx-auto text-5xl sm:text-6xl mb-4 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             {pdfFile ? (
               <div>
                 <p
-                  className={`font-medium text-lg ${
+                  className={`font-medium text-base sm:text-lg ${
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                   }`}
                 >
                   {pdfFile.name}
                 </p>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs sm:text-sm ${
                     isDark ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
@@ -344,14 +381,14 @@ const FlashcardGenerator = () => {
             ) : (
               <div>
                 <p
-                  className={`font-medium text-lg ${
+                  className={`font-medium text-base sm:text-lg ${
                     isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                   }`}
                 >
                   Click to upload PDF
                 </p>
                 <p
-                  className={`text-sm ${
+                  className={`text-xs sm:text-sm ${
                     isDark ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
@@ -363,20 +400,20 @@ const FlashcardGenerator = () => {
         </div>
 
         {extractedText && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={generateFlashcards}
               disabled={loading}
-              className={`flex items-center justify-center space-x-3 p-4 rounded-lg transition disabled:opacity-50 ${
+              className={`flex items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg transition disabled:opacity-50 ${
                 isDark
                   ? "bg-[#18182b] hover:bg-[#1e1e3a] border border-[#a78bfa] text-[#f8f8f8]"
                   : "bg-[#ece9ff] hover:bg-[#e0d7ff] border border-[#7c3aed] text-[#080808]"
               }`}
             >
               <FaLightbulb />
-              <span className="font-medium">
+              <span className="font-medium text-sm sm:text-base">
                 {loading ? "Generating..." : "Generate Flashcards"}
               </span>
             </motion.button>
@@ -386,14 +423,14 @@ const FlashcardGenerator = () => {
               whileTap={{ scale: 0.98 }}
               onClick={generateMCQs}
               disabled={loading}
-              className={`flex items-center justify-center space-x-3 p-4 rounded-lg transition disabled:opacity-50 ${
+              className={`flex items-center justify-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg transition disabled:opacity-50 ${
                 isDark
                   ? "bg-[#18182b] hover:bg-[#1e1e3a] border border-[#a78bfa] text-[#f8f8f8]"
                   : "bg-[#ece9ff] hover:bg-[#e0d7ff] border border-[#7c3aed] text-[#080808]"
               }`}
             >
               <FaQuestionCircle />
-              <span className="font-medium">
+              <span className="font-medium text-sm sm:text-base">
                 {loading ? "Generating..." : "Generate MCQs"}
               </span>
             </motion.button>
@@ -404,50 +441,50 @@ const FlashcardGenerator = () => {
   );
 
   const renderFlashcardsTab = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center">
             <FaLightbulb
-              className={`text-2xl mr-3 ${
+              className={`text-xl sm:text-2xl mr-2 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-2xl font-bold ${
+              className={`text-lg sm:text-2xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
               Flashcards ({flashcards.length})
             </h2>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={startStudyMode}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition ${
                 isDark
                   ? "bg-[#18182b] hover:bg-[#1e1e3a] border border-[#a78bfa] text-[#f8f8f8]"
                   : "bg-[#ece9ff] hover:bg-[#e0d7ff] border border-[#7c3aed] text-[#080808]"
               }`}
             >
               <FaPlay />
-              <span>Study Mode</span>
+              <span className="text-sm sm:text-base">Study Mode</span>
             </button>
             <button
               onClick={exportFlashcards}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition ${
                 isDark
                   ? "bg-[#181818] hover:bg-[#222] text-gray-400"
                   : "bg-gray-100 hover:bg-gray-200 text-gray-600"
               }`}
             >
               <FaDownload />
-              <span>Export</span>
+              <span className="text-sm sm:text-base">Export</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {flashcards.map((card, index) => (
             <motion.div
               key={index}
@@ -465,7 +502,7 @@ const FlashcardGenerator = () => {
               >
                 {/* Front of card - Question */}
                 <div
-                  className={`absolute inset-0 w-full h-full rounded-lg border shadow-lg flex flex-col justify-center p-6 ${
+                  className={`absolute inset-0 w-full h-full rounded-lg border shadow-lg flex flex-col justify-center p-4 sm:p-6 ${
                     isDark
                       ? "bg-[#18182b] border-[#a78bfa] text-[#f8f8f8]"
                       : "bg-[#ece9ff] border-[#7c3aed] text-[#080808]"
@@ -478,9 +515,11 @@ const FlashcardGenerator = () => {
                         isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
                       }`}
                     />
-                    <span className="text-sm font-medium">Question</span>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Question
+                    </span>
                   </div>
-                  <p className="text-base">{card.question}</p>
+                  <p className="text-sm sm:text-base">{card.question}</p>
                   <div className="mt-4 text-center">
                     <span className="text-xs opacity-60">
                       Click to reveal answer
@@ -490,7 +529,7 @@ const FlashcardGenerator = () => {
 
                 {/* Back of card - Answer */}
                 <div
-                  className={`absolute inset-0 w-full h-full rounded-lg border shadow-lg flex flex-col justify-center p-6 ${
+                  className={`absolute inset-0 w-full h-full rounded-lg border shadow-lg flex flex-col justify-center p-4 sm:p-6 ${
                     isDark
                       ? "bg-[#1e1e3a] border-[#a78bfa] text-[#f8f8f8]"
                       : "bg-[#e0d7ff] border-[#7c3aed] text-[#080808]"
@@ -506,9 +545,11 @@ const FlashcardGenerator = () => {
                         isDark ? "text-green-400" : "text-green-600"
                       }`}
                     />
-                    <span className="text-sm font-medium">Answer</span>
+                    <span className="text-xs sm:text-sm font-medium">
+                      Answer
+                    </span>
                   </div>
-                  <p className="text-base">{card.answer}</p>
+                  <p className="text-sm sm:text-base">{card.answer}</p>
                   <div className="mt-4 text-center">
                     <span className="text-xs opacity-60">
                       Click to see question
@@ -524,24 +565,28 @@ const FlashcardGenerator = () => {
   );
 
   const renderStudyMode = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-4 gap-2">
             <FaBrain
-              className={`text-3xl mr-3 ${
+              className={`text-2xl sm:text-3xl mr-0 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-2xl font-bold ${
+              className={`text-lg sm:text-2xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
               Active Recall Study Session
             </h2>
           </div>
-          <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <p
+            className={`text-sm sm:text-base ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
             Card {currentCardIndex + 1} of {flashcards.length}
           </p>
           <div
@@ -561,7 +606,7 @@ const FlashcardGenerator = () => {
         </div>
 
         <div
-          className={`p-8 rounded-lg border min-h-[350px] flex flex-col justify-center ${
+          className={`p-4 sm:p-8 rounded-lg border min-h-[250px] sm:min-h-[350px] flex flex-col justify-center ${
             isDark
               ? "bg-[#18182b] border-[#a78bfa]"
               : "bg-[#ece9ff] border-[#7c3aed]"
@@ -569,7 +614,7 @@ const FlashcardGenerator = () => {
         >
           <div className="text-center mb-6">
             <p
-              className={`text-lg mb-6 ${
+              className={`text-base sm:text-lg mb-6 ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -579,7 +624,7 @@ const FlashcardGenerator = () => {
             {!showAnswer ? (
               <button
                 onClick={() => setShowAnswer(true)}
-                className={`px-6 py-3 rounded-lg transition flex items-center mx-auto ${
+                className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition flex items-center mx-auto ${
                   isDark
                     ? "bg-[#1e1e3a] hover:bg-[#262650] border border-[#a78bfa] text-[#f8f8f8]"
                     : "bg-[#e0d7ff] hover:bg-[#d4c7ff] border border-[#7c3aed] text-[#080808]"
@@ -591,7 +636,7 @@ const FlashcardGenerator = () => {
             ) : (
               <div className="space-y-6">
                 <div
-                  className={`p-4 rounded-lg ${
+                  className={`p-3 sm:p-4 rounded-lg ${
                     isDark ? "bg-[#1e1e3a]" : "bg-[#e0d7ff]"
                   }`}
                 >
@@ -604,20 +649,20 @@ const FlashcardGenerator = () => {
                   </p>
                 </div>
 
-                <div className="flex justify-center space-x-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
                   <button
                     onClick={() => handleCardResponse(false)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                   >
                     <FaTimesCircle />
-                    <span>Need Review</span>
+                    <span className="text-sm sm:text-base">Need Review</span>
                   </button>
                   <button
                     onClick={() => handleCardResponse(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                   >
                     <FaCheckCircle />
-                    <span>Got It!</span>
+                    <span className="text-sm sm:text-base">Got It!</span>
                   </button>
                 </div>
               </div>
@@ -627,7 +672,9 @@ const FlashcardGenerator = () => {
 
         <div className="mt-6 text-center">
           <p
-            className={`${isDark ? "text-gray-400" : "text-gray-600"} text-sm`}
+            className={`${
+              isDark ? "text-gray-400" : "text-gray-600"
+            } text-xs sm:text-sm`}
           >
             Correct: {studyStats.correct} | Need Review:{" "}
             {studyStats.needsReview.length}
@@ -638,17 +685,17 @@ const FlashcardGenerator = () => {
   );
 
   const renderMCQsTab = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center">
             <FaQuestionCircle
-              className={`text-2xl mr-3 ${
+              className={`text-xl sm:text-2xl mr-2 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-2xl font-bold ${
+              className={`text-lg sm:text-2xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -657,7 +704,7 @@ const FlashcardGenerator = () => {
           </div>
           <button
             onClick={resetMcqQuiz}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition text-sm ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition text-xs sm:text-sm ${
               isDark
                 ? "bg-[#181818] hover:bg-[#222] text-gray-400"
                 : "bg-gray-100 hover:bg-gray-200 text-gray-600"
@@ -668,28 +715,28 @@ const FlashcardGenerator = () => {
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {mcqs.map((mcq, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className={`p-6 rounded-lg border ${
+              className={`p-4 sm:p-6 rounded-lg border ${
                 isDark
                   ? "bg-[#18182b] border-[#a78bfa]/50"
                   : "bg-[#ece9ff] border-[#7c3aed]/50"
               }`}
             >
               <h3
-                className={`font-medium mb-4 ${
+                className={`font-medium mb-4 text-sm sm:text-base ${
                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                 }`}
               >
                 {index + 1}. {mcq.question}
               </h3>
 
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {mcq.options.map((option, optionIndex) => {
                   const isAnswered = userAnswers[index] !== undefined;
                   const isCorrect = optionIndex === mcq.correctAnswer;
@@ -698,23 +745,19 @@ const FlashcardGenerator = () => {
                   let buttonClass = "";
                   if (isAnswered) {
                     if (isCorrect) {
-                      // Correct answer is always green after answering
                       buttonClass = isDark
                         ? "bg-green-900/50 border-green-600 text-green-300"
                         : "bg-green-100 border-green-300 text-green-800";
                     } else if (isSelected && !isCorrect) {
-                      // User's wrong choice is red
                       buttonClass = isDark
                         ? "bg-red-900/50 border-red-600 text-red-300"
                         : "bg-red-100 border-red-300 text-red-800";
                     } else {
-                      // Other incorrect options are neutral
                       buttonClass = isDark
                         ? "bg-[#1e1e3a] border-[#333] text-gray-400"
                         : "bg-white border-gray-200 text-gray-600";
                     }
                   } else {
-                    // Not answered yet, so add hover effect
                     buttonClass = isDark
                       ? "bg-[#1e1e3a] border-[#333] hover:bg-[#262650] hover:border-[#a78bfa] text-gray-300"
                       : "bg-white border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 text-gray-700";
@@ -725,7 +768,7 @@ const FlashcardGenerator = () => {
                       key={optionIndex}
                       onClick={() => handleMcqAnswer(index, optionIndex)}
                       disabled={isAnswered}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${buttonClass} ${
+                      className={`w-full text-left p-2 sm:p-3 rounded-lg border transition-colors ${buttonClass} ${
                         !isAnswered ? "cursor-pointer" : "cursor-default"
                       }`}
                     >
@@ -752,7 +795,7 @@ const FlashcardGenerator = () => {
   );
 
   return (
-    <div className={`${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div>
       <AnimatePresence mode="wait">
         {studyMode ? (
           <motion.div
@@ -772,11 +815,11 @@ const FlashcardGenerator = () => {
           >
             {/* Tab Navigation */}
             <div
-              className={`border-b px-6 ${
+              className={`border-b px-4 sm:px-6 ${
                 isDark ? "border-[#222]" : "border-gray-200"
               }`}
             >
-              <div className="flex space-x-8">
+              <div className="flex flex-wrap gap-4 sm:gap-8">
                 {[
                   { id: "upload", label: "Upload PDF", icon: FaFilePdf },
                   {
@@ -795,7 +838,7 @@ const FlashcardGenerator = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 border-b-2 transition font-medium ${
+                    className={`flex items-center gap-2 py-2 sm:py-4 border-b-2 transition font-medium text-sm sm:text-base ${
                       activeTab === tab.id
                         ? isDark
                           ? "border-[#a78bfa] text-[#a78bfa]"
