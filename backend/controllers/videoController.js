@@ -271,6 +271,174 @@ Limit total slides to 6-12.
   }));
 }
 
+// Add progress tracking function
+function sendProgress(res, step, details = "") {
+  const message = details ? `${step}: ${details}` : step;
+  res.write(`data: ${JSON.stringify({ step, details, message })}\n\n`);
+}
+
+const createTopicVideoWithProgress = async (req, res) => {
+  // Set headers for Server-Sent Events
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Cache-Control",
+  });
+
+  try {
+    const { topic } = req.body;
+    if (!topic || !topic.trim()) {
+      res.write(`data: ${JSON.stringify({ error: "Topic is required" })}\n\n`);
+      res.end();
+      return;
+    }
+
+    sendProgress(res, "Initializing", "Starting video generation...");
+
+    // Step 1: Generate slides with Gemini
+    sendProgress(res, "Generating Content", "Creating slides with AI...");
+    const slidesMeta = await generateSlidesWithGemini(String(topic).trim());
+    if (!Array.isArray(slidesMeta) || slidesMeta.length === 0) {
+      res.write(
+        `data: ${JSON.stringify({ error: "Failed to generate slides" })}\n\n`
+      );
+      res.end();
+      return;
+    }
+    sendProgress(
+      res,
+      "Content Generated",
+      `${slidesMeta.length} slides created`
+    );
+
+    // Step 2: Fetch background images
+    sendProgress(res, "Fetching Images", "Getting background images...");
+    let bgImages = [];
+    try {
+      bgImages = await Promise.all(
+        slidesMeta.map((s) => getImageForKeyword(`${topic} ${s.title || ""}`))
+      );
+      sendProgress(res, "Images Ready", "Background images downloaded");
+    } catch (e) {
+      console.warn("Error fetching background images:", e.message || e);
+      bgImages = slidesMeta.map(() => null);
+      sendProgress(res, "Images Skipped", "Using default backgrounds");
+    }
+
+    // Step 3: Process each slide - Keep track of temp files
+    const slideVideos = [];
+    const tempFiles = []; // Track temporary files for cleanup
+
+    for (let i = 0; i < slidesMeta.length; i++) {
+      const meta = slidesMeta[i];
+      const bgImageUrl = bgImages[i] || null;
+
+      sendProgress(
+        res,
+        "Processing Slide",
+        `Slide ${i + 1}/${slidesMeta.length}: ${meta.title}`
+      );
+
+      // Render slide image
+      sendProgress(
+        res,
+        "Rendering Image",
+        `Creating visual for slide ${i + 1}`
+      );
+      const imagePath = await renderSlideImage(meta, i, bgImageUrl);
+      tempFiles.push(imagePath); // Add to temp files
+
+      // Generate TTS - Make sure we use the full content
+      sendProgress(
+        res,
+        "Generating Audio",
+        `Creating narration for slide ${i + 1}`
+      );
+      const fullText = `${meta.title}. ${meta.content || ""}`.trim();
+      const audioPath = await generateTTS(fullText, i);
+      tempFiles.push(audioPath); // Add to temp files
+
+      // Create slide video
+      sendProgress(
+        res,
+        "Creating Video",
+        `Combining audio and visual for slide ${i + 1}`
+      );
+      const durationSec = Math.max(6, Math.min(12, meta.duration || 8));
+      const slideVideoPath = await createSlideVideo(
+        imagePath,
+        audioPath,
+        durationSec,
+        i
+      );
+      slideVideos.push(slideVideoPath);
+      tempFiles.push(slideVideoPath); // Add to temp files
+
+      sendProgress(res, "Slide Complete", `Slide ${i + 1} finished`);
+    }
+
+    // Step 4: Combine all slides
+    sendProgress(res, "Finalizing", "Combining all slides into final video...");
+    const finalFilename = `${topic.replace(
+      /[^a-zA-Z0-9]/g,
+      "_"
+    )}_${Date.now()}.mp4`;
+    const finalPath = path.join(outputsDir, finalFilename);
+    await concatVideos(slideVideos, finalPath);
+
+    // Step 5: Cleanup ONLY temporary files, keep final video
+    sendProgress(res, "Cleaning Up", "Removing temporary files...");
+    try {
+      // Only remove the specific temp files we created, not all files in outputs
+      for (const tempFile of tempFiles) {
+        try {
+          await fs.unlink(tempFile);
+        } catch (e) {
+          console.warn(`Failed to delete temp file ${tempFile}:`, e.message);
+        }
+      }
+
+      // Also remove the concat list file if it exists
+      const files = await fs.readdir(outputsDir);
+      for (const f of files) {
+        if (f.startsWith("concat_list_") && f.endsWith(".txt")) {
+          try {
+            await fs.unlink(path.join(outputsDir, f));
+          } catch (e) {
+            console.warn(`Failed to delete concat list ${f}:`, e.message);
+          }
+        }
+      }
+    } catch (cleanupErr) {
+      console.error("Cleanup error:", cleanupErr);
+    }
+
+    // Send final result
+    sendProgress(res, "Complete", "Video generation finished!");
+    res.write(
+      `data: ${JSON.stringify({
+        success: true,
+        videoUrl: `/outputs/${finalFilename}`,
+        slides: slidesMeta.length,
+        message: "Video created successfully",
+      })}\n\n`
+    );
+    res.end();
+  } catch (err) {
+    console.error("createTopicVideo error:", err);
+    res.write(
+      `data: ${JSON.stringify({
+        error: "Video generation failed",
+        details: String(err),
+      })}\n\n`
+    );
+    res.end();
+  }
+};
+
+// Update the regular endpoint too
 const createTopicVideo = async (req, res) => {
   try {
     const { topic } = req.body;
@@ -280,7 +448,6 @@ const createTopicVideo = async (req, res) => {
         .json({ success: false, message: "Topic is required" });
     }
 
-    // get slides description (titles/content/prompts) from Gemini 2.5-flash
     const slidesMeta = await generateSlidesWithGemini(String(topic).trim());
     if (!Array.isArray(slidesMeta) || slidesMeta.length === 0) {
       return res
@@ -288,7 +455,6 @@ const createTopicVideo = async (req, res) => {
         .json({ success: false, message: "Failed to generate slides" });
     }
 
-    // Fetch one related Unsplash image per slide (use topic + slide title as keyword)
     let bgImages = [];
     try {
       bgImages = await Promise.all(
@@ -300,15 +466,20 @@ const createTopicVideo = async (req, res) => {
     }
 
     const slideVideos = [];
+    const tempFiles = []; // Track temporary files
+
     for (let i = 0; i < slidesMeta.length; i++) {
       const meta = slidesMeta[i];
       const bgImageUrl = bgImages[i] || null;
-      // render image locally from meta (use Unsplash image when available)
       const imagePath = await renderSlideImage(meta, i, bgImageUrl);
-      // get narration
-      const audioPath = await generateTTS(meta.content || `${meta.title}`);
-      // create per-slide video (duration provided by model)
-      const durationSec = Math.max(6, Math.min(9, meta.duration || 7));
+      tempFiles.push(imagePath);
+
+      // Enhanced TTS with full content
+      const fullText = `${meta.title}. ${meta.content || ""}`.trim();
+      const audioPath = await generateTTS(fullText, i);
+      tempFiles.push(audioPath);
+
+      const durationSec = Math.max(6, Math.min(12, meta.duration || 8));
       const slideVideoPath = await createSlideVideo(
         imagePath,
         audioPath,
@@ -316,9 +487,9 @@ const createTopicVideo = async (req, res) => {
         i
       );
       slideVideos.push(slideVideoPath);
+      tempFiles.push(slideVideoPath);
     }
 
-    // concat videos
     const finalFilename = `${topic.replace(
       /[^a-zA-Z0-9]/g,
       "_"
@@ -326,20 +497,27 @@ const createTopicVideo = async (req, res) => {
     const finalPath = path.join(outputsDir, finalFilename);
     await concatVideos(slideVideos, finalPath);
 
-    // CLEANUP: remove all files in outputs except the final video
+    // Cleanup only temp files, keep final video
     try {
+      for (const tempFile of tempFiles) {
+        try {
+          await fs.unlink(tempFile);
+        } catch (e) {
+          console.warn(`Failed to delete temp file ${tempFile}:`, e.message);
+        }
+      }
+
+      // Remove concat list files
       const files = await fs.readdir(outputsDir);
       for (const f of files) {
-        const full = path.join(outputsDir, f);
-        if (full === finalPath) continue;
-        try {
-          await fs.unlink(full).catch(() => {});
-        } catch (e) {
-          // ignore per-file removal errors
+        if (f.startsWith("concat_list_") && f.endsWith(".txt")) {
+          try {
+            await fs.unlink(path.join(outputsDir, f));
+          } catch (e) {}
         }
       }
     } catch (cleanupErr) {
-      console.error("Outputs cleanup error:", cleanupErr);
+      console.error("Cleanup error:", cleanupErr);
     }
 
     return res.json({
@@ -384,5 +562,6 @@ const deleteVideoFile = async (req, res) => {
 
 module.exports = {
   createTopicVideo,
-  deleteVideoFile, // export new function
+  createTopicVideoWithProgress, // Add new function
+  deleteVideoFile,
 };
