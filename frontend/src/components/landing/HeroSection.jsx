@@ -9,7 +9,11 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const tabs = [
-    { id: "study-flow", label: "Personalized Study Flow", image: "/StudyFlow.png" },
+    {
+      id: "study-flow",
+      label: "Personalized Study Flow",
+      image: "/StudyFlow.png",
+    },
     { id: "flashcards", label: "Flashcards  ", image: "/FlashCards.png" },
     { id: "quizzes", label: "Quizzes", image: "/Quizzes.png" },
     { id: "dashboard", label: "Progress Dashboard", image: "/dashboard.png" },
@@ -25,13 +29,14 @@ const HeroSection = () => {
       >
         <h1
           className={`
-            text-6xl md:text-6xl font-bold mb-8 leading-tight max-w-5xl mx-auto
+            text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 leading-tight mx-auto
+            max-w-3xl md:max-w-full md:whitespace-nowrap
             ${isDark ? "text-[#f8f8f8]" : "text-[#080808]"}
           `}
         >
           Revolutionize{" "}
           <span
-            className={`bg-clip-text text-transparent ${
+            className={`bg-clip-text text-transparent inline ${
               isDark
                 ? "bg-gradient-to-r from-[#4a4494] to-[#4a4494]/70"
                 : "bg-gradient-to-r from-[#222052] to-[#222052]/70"
@@ -43,7 +48,7 @@ const HeroSection = () => {
         </h1>
         <p
           className={`
-            text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed
+            text-sm sm:text-base md:text-lg mb-6 max-w-2xl mx-auto leading-relaxed
             ${isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"}
           `}
         >
@@ -52,37 +57,50 @@ const HeroSection = () => {
           interactive – all in one platform.
         </p>
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center mb-10 w-full px-2">
+          {/* Primary: phone = full width + rounded-md, desktop = auto width + rounded-md */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`px-6 py-3 rounded-full text-lg font-medium transition-all duration-200 shadow-lg ${
-              isDark
-                ? "bg-[#4a4494] text-[#f8f8f8] hover:bg-[#3d3a7a]"
-                : "bg-[#222052] text-[#f8f8f8] hover:bg-[#1a1840]"
-            }`}
+            whileHover={{ translateY: -3 }}
+            whileTap={{ translateY: 0 }}
+            className="w-full sm:w-auto relative inline-flex items-center justify-center transition-transform duration-200 focus:outline-none"
             onClick={() => navigate("/signup")}
           >
-            Get Started
+            <span
+              className={`relative z-10 block w-full text-center px-12 py-3 text-sm font-medium
+        rounded-md tracking-wider
+        ${isDark ? "bg-[#222052] text-white" : "bg-[#222052] text-white"}`}
+              style={{
+                boxShadow: isDark
+                  ? "0 8px 22px rgba(28,24,72,0.55)"
+                  : "0 8px 22px rgba(34,34,60,0.12)",
+              }}
+            >
+              Get Started
+            </span>
           </motion.button>
+
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={`
-                px-6 py-3 rounded-full text-lg font-medium transition-all duration-200 border-2
-                ${
-                  isDark
-                    ? "border-[#4a4494] text-[#4a4494] hover:bg-[#4a4494]/10"
-                    : "border-[#222052] text-[#222052] hover:bg-[#222052]/10"
-                }
-              `}
-            onClick={() =>
-              document
-                .getElementById("demo-video")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            whileHover={{ translateY: -2 }}
+            whileTap={{ translateY: 0 }}
+            // onClick={handleInstallClick}
+            className="w-full sm:w-auto relative inline-flex items-center justify-center transition-transform duration-200 focus:outline-none"
           >
-            See Demo
+            <span
+              className={`relative z-10 block w-full text-center px-12 py-3 text-sm font-medium
+        rounded-md tracking-wider
+        ${
+          isDark
+            ? "bg-transparent text-[#dcd6ff] border border-[#3b3760]"
+            : "bg-white text-[#222052] border border-[#222052]"
+        }`}
+              style={{
+                boxShadow: isDark
+                  ? "0 6px 18px rgba(0,0,0,0.45)"
+                  : "0 6px 18px rgba(34,34,60,0.06)",
+              }}
+            >
+              Install App
+            </span>
           </motion.button>
         </div>
       </motion.div>

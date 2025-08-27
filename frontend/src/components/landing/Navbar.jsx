@@ -1,24 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "./ThemeToggle";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
+const navItems = [
+  { name: "Home", href: "#" },
+  { name: "Features", href: "#features" },
+  { name: "Testimonials", href: "#testimonials" },
+];
+
 const Navbar = () => {
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
   const { isDark } = useTheme();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [language, setLanguage] = useState(
     typeof window !== "undefined"
       ? localStorage.getItem("language") || "en"
       : "en"
   );
 
+  // dropdown state & ref for outside-click handling
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef(null);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -28,36 +36,40 @@ const Navbar = () => {
     if (stored) setLanguage(stored);
   }, []);
 
-  // use sonner toast; keep it short and theme-aware (icon/color)
+  // close language menu on outside click / escape
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target))
+        setLangOpen(false);
+    };
+    const onEsc = (e) => {
+      if (e.key === "Escape") setLangOpen(false);
+    };
+    document.addEventListener("click", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, []);
+
   const showToast = (
     msg = "Feature paused to save API credits — translation disabled"
   ) => {
-    // choose variant/icon based on theme for simple visual match
-    if (isDark) {
-      toast(msg, { duration: 3200 });
-    } else {
-      toast(msg, { duration: 3200 });
-    }
+    toast(msg, { duration: 3200 });
   };
 
-  // on small screens we still update UI badge, but do not trigger translation API
   const onSelectLang = (lang) => {
     setLanguage(lang);
     try {
       localStorage.setItem("language", lang);
     } catch (e) {}
+    setLangOpen(false);
     showToast();
   };
 
-  const navItems = [
-    { name: "Home", href: "#" },
-    { name: "Features", href: "#features" },
-    { name: "Testimonials", href: "#testimonials" },
-  ];
-
   return (
     <>
-      {/* single global toaster positioned top-right */}
       <Toaster position="top-right" />
       <motion.nav
         initial={{ y: -100 }}
@@ -78,7 +90,7 @@ const Navbar = () => {
           `}
         >
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* Logo + Name: always visible (phones + laptops) */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="flex items-center space-x-2"
@@ -97,7 +109,7 @@ const Navbar = () => {
               </span>
             </motion.div>
 
-            {/* Navigation Items - hidden on small screens */}
+            {/* Navigation - hidden on small screens (unchanged for laptop) */}
             <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item, index) => (
                 <motion.a
@@ -105,36 +117,33 @@ const Navbar = () => {
                   href={item.href}
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.06 }}
                   whileHover={{ y: -2 }}
-                  className={`
-                    text-sm font-medium transition-colors duration-200
-                    ${
-                      isDark
-                        ? "text-[#f8f8f8]/70 hover:text-[#f8f8f8]"
-                        : "text-[#080808]/70 hover:text-[#080808]"
-                    }
-                  `}
+                  className={`text-sm font-medium transition-colors duration-200 ${
+                    isDark
+                      ? "text-[#f8f8f8]/70 hover:text-[#f8f8f8]"
+                      : "text-[#080808]/70 hover:text-[#080808]"
+                  }`}
                 >
                   {item.name}
                 </motion.a>
               ))}
             </div>
 
-            {/* Theme Toggle & CTA */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <ThemeToggle />
 
-              {/* language dropdown container with extra right margin for spacing (responsive) */}
-              <div className="relative inline-block text-left mr-2 sm:mr-4">
+              {/* language dropdown - hidden on phones */}
+              <div
+                className="hidden sm:inline-block relative text-left mr-2 sm:mr-4"
+                ref={langRef}
+              >
                 <button
                   aria-haspopup="true"
-                  aria-expanded="false"
+                  aria-expanded={langOpen}
                   className="inline-flex items-center px-3 py-2 bg-white/5 border rounded-md text-sm font-medium hover:bg-white/10 transition touch-manipulation"
-                  onClick={(e) => {
-                    const menu = e.currentTarget.nextSibling;
-                    if (menu) menu.classList.toggle("hidden");
-                  }}
+                  onClick={() => setLangOpen((v) => !v)}
+                  type="button"
                 >
                   {language === "en"
                     ? "EN"
@@ -156,7 +165,9 @@ const Navbar = () => {
                 </button>
 
                 <div
-                  className="hidden origin-top-right absolute right-0 mt-2 sm:mt-2 w-44 rounded-md shadow-lg bg-white/90 dark:bg-[#0b0b0b]/95 z-50 max-w-[92vw]"
+                  className={`${
+                    langOpen ? "" : "hidden"
+                  } origin-top-right absolute right-0 mt-2 w-44 rounded-md shadow-lg bg-white/90 dark:bg-[#0b0b0b]/95 z-50 max-w-[92vw]`}
                   style={{ minWidth: 140 }}
                 >
                   <div className="py-1">
@@ -182,16 +193,18 @@ const Navbar = () => {
                 </div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-3 sm:px-4 py-2 bg-[#222052] text-[#f8f8f8] rounded-full text-sm font-medium hover:bg-[#222052]/90 transition-colors duration-200"
-                onClick={() => {
-                  navigate("/login");
-                }}
-              >
-                Get Started
-              </motion.button>
+              {/* CTA - hidden on phones */}
+              <div className="hidden sm:inline-flex">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-3 sm:px-4 py-2 bg-[#222052] text-[#f8f8f8] rounded-full text-sm font-medium hover:bg-[#222052]/90 transition-colors duration-200"
+                  onClick={() => navigate("/login")}
+                  type="button"
+                >
+                  Get Started
+                </motion.button>
+              </div>
             </div>
           </div>
         </div>
