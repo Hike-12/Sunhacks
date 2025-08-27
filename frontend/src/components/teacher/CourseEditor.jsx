@@ -582,19 +582,19 @@ const CourseEditor = () => {
         )}
 
         {/* Main Editor */}
-        <div className="flex-1 p-6 md:ml-0">
+        <div className="flex-1 p-4 sm:p-6 md:ml-0">
           {selectedNodeData ? (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-full sm:max-w-4xl mx-auto">
               <div
                 className={`rounded-lg shadow border ${
                   isDark
                     ? "bg-[#101010] border-[#222]"
                     : "bg-white border-gray-200"
-                } p-6`}
+                } p-4 sm:p-6`}
               >
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                   <h2
-                    className={`text-2xl font-bold ${
+                    className={`text-xl sm:text-2xl font-bold ${
                       isDark ? "text-[#f8f8f8]" : "text-[#080808]"
                     }`}
                   >
@@ -643,7 +643,7 @@ const CourseEditor = () => {
                           isDark ? "border-[#222]" : "border-gray-200"
                         }`}
                       >
-                        <div className="flex space-x-8">
+                        <div className="flex flex-wrap gap-2 sm:gap-8">
                           {[
                             {
                               id: "content",
@@ -657,7 +657,7 @@ const CourseEditor = () => {
                             <button
                               key={tab.id}
                               onClick={() => setActiveContentTab(tab.id)}
-                              className={`flex items-center space-x-2 py-3 border-b-2 transition font-medium
+                              className={`flex items-center space-x-2 py-2 sm:py-3 border-b-2 transition font-medium
                                 ${
                                   activeContentTab === tab.id
                                     ? isDark
@@ -718,7 +718,7 @@ const CourseEditor = () => {
                         <div className="space-y-6">
                           {/* Video URLs */}
                           <div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-row flex-wrap items-center justify-between mb-3 gap-2">
                               <label
                                 className={`block text-sm font-medium ${
                                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
@@ -734,12 +734,12 @@ const CourseEditor = () => {
                                 <span>Add Video</span>
                               </button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="flex flex-row flex-wrap gap-2">
                               {(selectedNodeData.videoUrls || []).map(
                                 (url, index) => (
                                   <div
                                     key={index}
-                                    className="flex items-center space-x-2"
+                                    className="flex flex-row items-center gap-2 w-full sm:w-auto"
                                   >
                                     <input
                                       type="url"
@@ -774,7 +774,7 @@ const CourseEditor = () => {
 
                           {/* Image URLs */}
                           <div>
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-row flex-wrap items-center justify-between mb-3 gap-2">
                               <label
                                 className={`block text-sm font-medium ${
                                   isDark ? "text-[#f8f8f8]" : "text-[#080808]"
@@ -790,12 +790,12 @@ const CourseEditor = () => {
                                 <span>Add Image</span>
                               </button>
                             </div>
-                            <div className="space-y-2">
+                            <div className="flex flex-row flex-wrap gap-2">
                               {(selectedNodeData.imageUrls || []).map(
                                 (url, index) => (
                                   <div
                                     key={index}
-                                    className="flex items-center space-x-2"
+                                    className="flex flex-row items-center gap-2 w-full sm:w-auto"
                                   >
                                     <input
                                       type="url"
@@ -831,19 +831,47 @@ const CourseEditor = () => {
                       )}
 
                       {activeContentTab === "diagram" && (
-                        <div>
-                          <Mermaid
-                            code={selectedNodeData.mermaid || ""}
-                            onChange={(mermaid) =>
-                              updateNode(selectedNode, "mermaid", mermaid)
-                            }
-                          />
+                        <div className="flex flex-row flex-wrap gap-4 items-start">
+                          <div className="flex-1 min-w-[200px]">
+                            <Mermaid
+                              code={selectedNodeData.mermaid || ""}
+                              onChange={(mermaid) =>
+                                updateNode(selectedNode, "mermaid", mermaid)
+                              }
+                            />
+                          </div>
+                          <div className="flex-1 min-w-[200px]">
+                            <label
+                              className={`block text-sm font-medium mb-2 ${
+                                isDark ? "text-[#f8f8f8]" : "text-[#080808]"
+                              }`}
+                            >
+                              Mermaid.js Code
+                            </label>
+                            <textarea
+                              value={selectedNodeData.mermaid || ""}
+                              onChange={(e) =>
+                                updateNode(
+                                  selectedNode,
+                                  "mermaid",
+                                  e.target.value
+                                )
+                              }
+                              rows={8}
+                              className={`w-full px-4 py-3 border rounded-lg resize-none ${
+                                isDark
+                                  ? "border-[#222] bg-[#181818] text-[#f8f8f8]"
+                                  : "border-gray-300 bg-white text-[#080808]"
+                              }`}
+                              placeholder="graph TD;\nA-->B;\nB-->C;"
+                            />
+                          </div>
                         </div>
                       )}
 
                       {activeContentTab === "quiz" && (
                         <div>
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex flex-row flex-wrap items-center justify-between mb-4 gap-2">
                             <h3
                               className={`text-lg font-semibold ${
                                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
@@ -881,23 +909,23 @@ const CourseEditor = () => {
                           </div>
 
                           {selectedNodeData.quiz?.questions?.length > 0 && (
-                            <QuizEditor
-                              quiz={selectedNodeData.quiz}
-                              onChange={(quiz) =>
-                                updateNode(selectedNode, "quiz", quiz)
-                              }
-                            />
+                            <div className="flex flex-row flex-wrap gap-4">
+                              <QuizEditor
+                                quiz={selectedNodeData.quiz}
+                                onChange={(quiz) =>
+                                  updateNode(selectedNode, "quiz", quiz)
+                                }
+                              />
+                            </div>
                           )}
                         </div>
                       )}
                     </>
                   )}
                 </div>
-                <div className="flex justify-end mt-8 space-x-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3 justify-end mt-8">
                   <button
-                    onClick={() =>
-                      navigate(`/courses/${courseId}/view`)
-                    }
+                    onClick={() => navigate(`/courses/${courseId}/view`)}
                     className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition font-medium
                       ${
                         isDark
@@ -920,7 +948,7 @@ const CourseEditor = () => {
               </div>
             </div>
           ) : (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-full sm:max-w-4xl mx-auto">
               <div className="text-center py-12">
                 <h3
                   className={`text-xl font-semibold ${
