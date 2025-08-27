@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const VideoGenerator = () => {
@@ -8,6 +8,11 @@ const VideoGenerator = () => {
   const [error, setError] = useState("");
   const [progress, setProgress] = useState("");
   const { isDark } = useTheme();
+
+  useEffect(() => {
+    const savedVideo = localStorage.getItem("generatedVideoUrl");
+    if (savedVideo) setGeneratedVideo(savedVideo);
+  }, []);
 
   const createTopicVideo = async () => {
     if (!topic.trim()) {
@@ -38,6 +43,10 @@ const VideoGenerator = () => {
       setGeneratedVideo(
         `${import.meta.env.VITE_NODE_BASE_API_URL}${data.videoUrl}`
       );
+      localStorage.setItem(
+        "generatedVideoUrl",
+        `${import.meta.env.VITE_NODE_BASE_API_URL}${data.videoUrl}`
+      );
       setProgress(`Video ready — ${data.slides} slides`);
     } catch (err) {
       setError(String(err.message || err));
@@ -52,12 +61,38 @@ const VideoGenerator = () => {
     createTopicVideo();
   };
 
+  const handleReset = async () => {
+    if (generatedVideo) {
+      try {
+        const token = localStorage.getItem("token");
+        await fetch(
+          `${import.meta.env.VITE_NODE_BASE_API_URL}/api/video/delete-video`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: token ? `Bearer ${token}` : undefined,
+            },
+            body: JSON.stringify({ videoUrl: generatedVideo }),
+          }
+        );
+      } catch (e) {
+        // Optionally show error
+      }
+    }
+    setTopic("");
+    setGeneratedVideo(null);
+    setError("");
+    setProgress("");
+    localStorage.removeItem("generatedVideoUrl");
+  };
+
   return (
-    <div
-      className={`min-h-screen p-6`}
-    >
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">AI Video Generator</h1>
+    <div className={`min-h-screen p-4 sm:p-6`}>
+      <div className="max-w-full sm:max-w-2xl md:max-w-4xl lg:max-w-6xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4">
+          AI Video Generator
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             value={topic}
@@ -66,22 +101,17 @@ const VideoGenerator = () => {
             className="w-full p-3 rounded border"
             disabled={loading}
           />
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               disabled={loading}
-              className="px-4 py-2 bg-indigo-600 text-white rounded"
+              className="px-4 py-2 bg-indigo-600 text-white rounded w-full sm:w-auto"
             >
               {loading ? "Generating..." : "Generate Video"}
             </button>
             <button
               type="button"
-              onClick={() => {
-                setTopic("");
-                setGeneratedVideo(null);
-                setError("");
-                setProgress("");
-              }}
-              className="px-4 py-2 border rounded"
+              onClick={handleReset}
+              className="px-4 py-2 border rounded w-full sm:w-auto"
             >
               Reset
             </button>

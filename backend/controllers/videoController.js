@@ -358,6 +358,31 @@ const createTopicVideo = async (req, res) => {
   }
 };
 
+const deleteVideoFile = async (req, res) => {
+  try {
+    const { videoUrl } = req.body;
+    if (!videoUrl)
+      return res
+        .status(400)
+        .json({ success: false, message: "No videoUrl provided" });
+    const filename = videoUrl.split("/outputs/")[1];
+    if (!filename)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid videoUrl" });
+    const filePath = path.join(outputsDir, filename);
+    await fs.unlink(filePath);
+    return res.json({ success: true, message: "Video deleted" });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Delete failed",
+      error: String(err),
+    });
+  }
+};
+
 module.exports = {
   createTopicVideo,
+  deleteVideoFile, // export new function
 };
