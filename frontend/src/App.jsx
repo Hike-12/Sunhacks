@@ -60,7 +60,7 @@ function App() {
 
   return (
     <ThemeProvider>
-    <InstallPWAButton />
+    {/* <InstallPWAButton /> */}
       <Router>
         {/* Place your Navbar here if you have one */}
         <PomodoroFloating /> {/* <-- Add this line */}

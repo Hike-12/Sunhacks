@@ -1,7 +1,49 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+
+function InstallPWAButton() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
+    }
+  };
+
+  if (!deferredPrompt) return null;
+
+  return (
+    <motion.button
+      whileHover={{ translateY: -2 }}
+      whileTap={{ translateY: 0 }}
+      onClick={handleInstallClick}
+      className="w-full sm:w-auto relative inline-flex items-center justify-center transition-transform duration-200 focus:outline-none"
+    >
+      <span
+        className={`relative z-10 block w-full text-center px-12 py-3 text-sm font-medium
+        rounded-md tracking-wider
+        bg-white text-[#222052] border border-[#222052]`}
+        style={{
+          boxShadow: "0 6px 18px rgba(34,34,60,0.06)",
+        }}
+      >
+        Install App
+      </span>
+    </motion.button>
+  );
+}
 
 const HeroSection = () => {
   const { isDark } = useTheme();
@@ -79,29 +121,7 @@ const HeroSection = () => {
             </span>
           </motion.button>
 
-          <motion.button
-            whileHover={{ translateY: -2 }}
-            whileTap={{ translateY: 0 }}
-            // onClick={handleInstallClick}
-            className="w-full sm:w-auto relative inline-flex items-center justify-center transition-transform duration-200 focus:outline-none"
-          >
-            <span
-              className={`relative z-10 block w-full text-center px-12 py-3 text-sm font-medium
-        rounded-md tracking-wider
-        ${
-          isDark
-            ? "bg-transparent text-[#dcd6ff] border border-[#3b3760]"
-            : "bg-white text-[#222052] border border-[#222052]"
-        }`}
-              style={{
-                boxShadow: isDark
-                  ? "0 6px 18px rgba(0,0,0,0.45)"
-                  : "0 6px 18px rgba(34,34,60,0.06)",
-              }}
-            >
-              Install App
-            </span>
-          </motion.button>
+          <InstallPWAButton />
         </div>
       </motion.div>
       {/* Demo Container */}
