@@ -27,11 +27,11 @@ connectDB();
 // CORS configuration
 const corsOptions = {
   origin: [
+    "https://studyaid-sunhacks.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:4173",
-    "https://egurukul.vercel.app",
-    "*",
+    "https://egurukul.vercel.app"
   ],
   credentials: true,
   optionsSuccessStatus: 200,
