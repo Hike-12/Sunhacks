@@ -2,7 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FaUser, FaRobot, FaSmile, FaBolt, FaBrain, FaHeart, FaGavel } from "react-icons/fa";
+import {
+  FaUser,
+  FaRobot,
+  FaSmile,
+  FaBolt,
+  FaBrain,
+  FaHeart,
+  FaGavel,
+} from "react-icons/fa";
+import { useTheme } from "../../context/ThemeContext";
 
 const PERSONALITIES = {
   supportive: {
@@ -33,9 +42,17 @@ const PERSONALITIES = {
 };
 
 const SUBJECTS = [
-  { key: "general", label: "General", icon: <FaRobot className="text-blue-400" /> },
+  {
+    key: "general",
+    label: "General",
+    icon: <FaRobot className="text-blue-400" />,
+  },
   { key: "math", label: "Math", icon: <FaBrain className="text-green-400" /> },
-  { key: "science", label: "Science", icon: <FaBolt className="text-yellow-400" /> },
+  {
+    key: "science",
+    label: "Science",
+    icon: <FaBolt className="text-yellow-400" />,
+  },
   // Add more subjects as needed
 ];
 
@@ -47,6 +64,7 @@ const DoubtSolverChatbot = () => {
   const [loading, setLoading] = useState(false);
   const [showPersonalitySelector, setShowPersonalitySelector] = useState(false);
   const messagesEndRef = useRef(null);
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const storedMessages = localStorage.getItem("doubtMessages");
@@ -165,7 +183,11 @@ const DoubtSolverChatbot = () => {
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
-      <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-4 mb-4">
+      <div
+        className={`border rounded-xl p-4 mb-4
+        ${isDark ? "bg-[#0a0a0a] border-[#222]" : "bg-white border-gray-200"}
+      `}
+      >
         <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
             <motion.div
@@ -175,16 +197,32 @@ const DoubtSolverChatbot = () => {
               {PERSONALITIES[personality].icon}
             </motion.div>
             <div>
-              <h3 className="font-bold text-lg">AI Doubt Solver Assistant</h3>
-              <p className="text-sm text-[#f5f5f7]/60">
+              <h3
+                className={`font-bold text-lg ${
+                  isDark ? "text-[#f5f5f7]" : "text-[#080808]"
+                }`}
+              >
+                AI Doubt Solver Assistant
+              </h3>
+              <p
+                className={`text-sm ${
+                  isDark ? "text-[#f5f5f7]/60" : "text-[#080808]/60"
+                }`}
+              >
                 {PERSONALITIES[personality].description}
               </p>
             </div>
           </div>
           <div className="flex gap-2 mt-2 md:mt-0">
             <motion.button
-              onClick={() => setShowPersonalitySelector(!showPersonalitySelector)}
-              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#222] text-sm"
+              onClick={() =>
+                setShowPersonalitySelector(!showPersonalitySelector)
+              }
+              className={`p-2 rounded-lg text-sm ${
+                isDark
+                  ? "bg-[#1a1a1a] hover:bg-[#222] text-[#f5f5f7]"
+                  : "bg-gray-100 hover:bg-gray-200 text-[#080808]"
+              }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -192,7 +230,11 @@ const DoubtSolverChatbot = () => {
             </motion.button>
             <motion.button
               onClick={clearChat}
-              className="p-2 rounded-lg bg-[#1a1a1a] hover:bg-[#222] text-sm"
+              className={`p-2 rounded-lg text-sm ${
+                isDark
+                  ? "bg-[#1a1a1a] hover:bg-[#222] text-[#f5f5f7]"
+                  : "bg-gray-100 hover:bg-gray-200 text-[#080808]"
+              }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -206,8 +248,12 @@ const DoubtSolverChatbot = () => {
               key={subj.key}
               className={`px-3 py-1 rounded-full flex items-center gap-1 text-sm border ${
                 subject === subj.key
-                  ? "bg-blue-100 border-blue-400 text-blue-700"
-                  : "bg-[#181818] border-[#222] text-[#f5f5f7]/70"
+                  ? isDark
+                    ? "bg-blue-900 border-blue-400 text-blue-200"
+                    : "bg-blue-100 border-blue-400 text-blue-700"
+                  : isDark
+                  ? "bg-[#181818] border-[#222] text-[#f5f5f7]/70"
+                  : "bg-gray-100 border-gray-200 text-[#080808]/70"
               }`}
               onClick={() => setSubject(subj.key)}
             >
@@ -227,7 +273,13 @@ const DoubtSolverChatbot = () => {
           onClick={() => setShowPersonalitySelector(false)}
         >
           <motion.div
-            className="bg-[#1a1a1a] border border-[#222] rounded-lg p-4 w-full max-w-md mx-auto"
+            className={`border rounded-lg p-4 w-full max-w-md mx-auto
+              ${
+                isDark
+                  ? "bg-[#1a1a1a] border-[#222] text-[#f5f5f7]"
+                  : "bg-white border-gray-200 text-[#080808]"
+              }
+            `}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             onClick={(e) => e.stopPropagation()}
@@ -284,24 +336,38 @@ const DoubtSolverChatbot = () => {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto bg-[#0a0a0a] border border-[#222] rounded-xl p-4 mb-4">
+      <div
+        className={`flex-1 overflow-y-auto border rounded-xl p-4 mb-4
+        ${isDark ? "bg-[#0a0a0a] border-[#222]" : "bg-white border-gray-200"}
+      `}
+      >
         <div className="flex flex-col gap-4">
           {messages.map((msg, index) => (
             <div
               key={index}
-              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex ${
+                msg.sender === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
                 className={`max-w-[90%] p-3 rounded-lg ${
                   msg.sender === "user"
-                    ? "bg-[#A2BFFE] text-[#080808]"
+                    ? isDark
+                      ? "bg-blue-900 text-blue-100"
+                      : "bg-[#A2BFFE] text-[#080808]"
                     : msg.personality
                     ? `${PERSONALITIES[msg.personality].color} bg-opacity-20`
-                    : "bg-[#181818] text-[#f5f5f7]"
+                    : isDark
+                    ? "bg-[#181818] text-[#f5f5f7]"
+                    : "bg-gray-100 text-[#080808]"
                 }`}
               >
                 <p>{msg.text}</p>
-                <p className="text-xs mt-1 opacity-70">
+                <p
+                  className={`text-xs mt-1 opacity-70 ${
+                    isDark ? "text-[#f5f5f7]/70" : "text-[#080808]/70"
+                  }`}
+                >
                   {new Date(msg.timestamp).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -312,7 +378,13 @@ const DoubtSolverChatbot = () => {
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="max-w-[90%] p-3 rounded-lg bg-[#181818] text-[#f5f5f7]">
+              <div
+                className={`max-w-[90%] p-3 rounded-lg ${
+                  isDark
+                    ? "bg-[#181818] text-[#f5f5f7]"
+                    : "bg-gray-100 text-[#080808]"
+                }`}
+              >
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
                   <div className="w-2 h-2 rounded-full bg-current animate-pulse delay-150"></div>
@@ -328,7 +400,9 @@ const DoubtSolverChatbot = () => {
       {/* Input */}
       <form
         onSubmit={handleSubmit}
-        className="bg-[#0a0a0a] border border-[#222] rounded-xl p-4"
+        className={`border rounded-xl p-4
+          ${isDark ? "bg-[#0a0a0a] border-[#222]" : "bg-white border-gray-200"}
+        `}
       >
         <div className="flex flex-col sm:flex-row gap-2">
           <input
@@ -336,12 +410,24 @@ const DoubtSolverChatbot = () => {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Type your academic doubt here..."
-            className="flex-1 bg-[#1a1a1a] text-[#f5f5f7] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#A2BFFE]/50"
+            className={`flex-1 rounded-lg px-3 py-2 focus:outline-none focus:ring-2
+              ${
+                isDark
+                  ? "bg-[#1a1a1a] text-[#f5f5f7] focus:ring-blue-900"
+                  : "bg-gray-100 text-[#080808] focus:ring-[#A2BFFE]/50"
+              }
+            `}
             disabled={loading}
           />
           <motion.button
             type="submit"
-            className="bg-[#A2BFFE] hover:bg-[#91AFFE] text-[#080808] px-4 py-2 rounded-lg font-bold disabled:opacity-50"
+            className={`px-4 py-2 rounded-lg font-bold disabled:opacity-50
+              ${
+                isDark
+                  ? "bg-blue-900 hover:bg-blue-800 text-blue-100"
+                  : "bg-[#A2BFFE] hover:bg-[#91AFFE] text-[#080808]"
+              }
+            `}
             whileHover={{ scale: loading ? 1 : 1.05 }}
             whileTap={{ scale: loading ? 1 : 0.95 }}
             disabled={loading || !question.trim()}
@@ -349,7 +435,11 @@ const DoubtSolverChatbot = () => {
             Send
           </motion.button>
         </div>
-        <p className="text-xs text-[#f5f5f7]/40 mt-2">
+        <p
+          className={`text-xs mt-2 ${
+            isDark ? "text-[#f5f5f7]/40" : "text-[#080808]/40"
+          }`}
+        >
           Your AI assistant uses Groq to solve your academic doubts.
         </p>
       </form>

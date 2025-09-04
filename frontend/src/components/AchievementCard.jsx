@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { TranslatedText } from "./TranslatedText";
 
+
 // Maps frontend codes to backend full names (same as in StudentStats)
 const BACKEND_LANGUAGE_MAP = {
   en: "English",

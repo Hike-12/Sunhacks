@@ -177,17 +177,17 @@ const PersonalizedStudyFlow = () => {
   };
 
   const renderProfileSetup = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-4 gap-2">
             <FaBullseye
-              className={`text-4xl mr-3 ${
+              className={`text-4xl mr-0 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-3xl font-bold ${
+              className={`text-2xl sm:text-3xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -195,7 +195,7 @@ const PersonalizedStudyFlow = () => {
             </h2>
           </div>
           <p
-            className={`text-lg ${
+            className={`text-base sm:text-lg ${
               isDark ? "text-gray-400" : "text-gray-600"
             } mb-8`}
           >
@@ -205,13 +205,13 @@ const PersonalizedStudyFlow = () => {
         </div>
 
         <div
-          className={`p-8 rounded-lg border ${
+          className={`p-4 sm:p-8 rounded-lg border ${
             isDark
               ? "bg-[#18182b] border-[#a78bfa]"
               : "bg-[#ece9ff] border-[#7c3aed]"
           }`}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label
                 className={`block text-sm font-medium mb-2 ${
@@ -292,7 +292,7 @@ const PersonalizedStudyFlow = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 mt-8">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-8">
             <button
               onClick={() => {
                 localStorage.setItem(
@@ -328,9 +328,9 @@ const PersonalizedStudyFlow = () => {
   );
 
   const renderStudyPlan = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center">
             <FaCalendarAlt
               className={`text-2xl mr-3 ${
@@ -359,7 +359,7 @@ const PersonalizedStudyFlow = () => {
         </div>
 
         {studyPlan && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-2">
               <h3
                 className={`text-lg font-semibold mb-4 ${
@@ -375,13 +375,13 @@ const PersonalizedStudyFlow = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`p-6 rounded-lg border ${
+                    className={`p-4 sm:p-6 rounded-lg border ${
                       isDark
                         ? "bg-[#18182b] border-[#a78bfa]"
                         : "bg-[#ece9ff] border-[#7c3aed]"
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                       <h4
                         className={`font-medium text-lg ${
                           isDark ? "text-[#f8f8f8]" : "text-[#080808]"
@@ -402,7 +402,7 @@ const PersonalizedStudyFlow = () => {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 text-sm">
                       <div>
                         <span
                           className={`font-medium ${
@@ -473,9 +473,9 @@ const PersonalizedStudyFlow = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div
-                className={`p-6 rounded-lg border ${
+                className={`p-4 sm:p-6 rounded-lg border ${
                   isDark
                     ? "bg-[#18182b] border-[#a78bfa]"
                     : "bg-[#ece9ff] border-[#7c3aed]"
@@ -510,7 +510,7 @@ const PersonalizedStudyFlow = () => {
               </div>
 
               <div
-                className={`p-6 rounded-lg border ${
+                className={`p-4 sm:p-6 rounded-lg border ${
                   isDark
                     ? "bg-[#18182b] border-[#a78bfa]"
                     : "bg-[#ece9ff] border-[#7c3aed]"
@@ -545,7 +545,7 @@ const PersonalizedStudyFlow = () => {
               </div>
 
               <div
-                className={`p-6 rounded-lg border ${
+                className={`p-4 sm:p-6 rounded-lg border ${
                   isDark
                     ? "bg-[#18182b] border-[#a78bfa]"
                     : "bg-[#ece9ff] border-[#7c3aed]"
@@ -581,17 +581,17 @@ const PersonalizedStudyFlow = () => {
   );
 
   const renderActiveSession = () => (
-    <div className={`min-h-screen p-6 ${isDark ? "bg-[#101010]" : "bg-white"}`}>
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center mb-4 gap-2">
             <FaRoute
-              className={`text-3xl mr-3 ${
+              className={`text-3xl mr-0 sm:mr-3 ${
                 isDark ? "text-[#a78bfa]" : "text-[#7c3aed]"
               }`}
             />
             <h2
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -604,7 +604,7 @@ const PersonalizedStudyFlow = () => {
         </div>
 
         <div
-          className={`p-8 rounded-lg border ${
+          className={`p-4 sm:p-8 rounded-lg border ${
             isDark
               ? "bg-[#18182b] border-[#a78bfa]"
               : "bg-[#ece9ff] border-[#7c3aed]"
@@ -612,7 +612,7 @@ const PersonalizedStudyFlow = () => {
         >
           <div className="text-center mb-6">
             <h3
-              className={`text-xl font-semibold mb-2 ${
+              className={`text-lg sm:text-xl font-semibold mb-2 ${
                 isDark ? "text-[#f8f8f8]" : "text-[#080808]"
               }`}
             >
@@ -624,7 +624,7 @@ const PersonalizedStudyFlow = () => {
             {currentSession.activities.map((activity, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg border flex justify-between items-center transition ${
+                className={`p-4 rounded-lg border flex flex-col sm:flex-row justify-between items-start sm:items-center transition ${
                   currentSession.completedActivities.includes(index)
                     ? isDark
                       ? "bg-green-900/30 border-green-600"
@@ -644,25 +644,27 @@ const PersonalizedStudyFlow = () => {
                   {activity}
                 </span>
 
-                {currentSession.completedActivities.includes(index) ? (
-                  <FaTrophy className="text-yellow-500 text-lg" />
-                ) : index === currentSession.currentActivity ? (
-                  <button
-                    onClick={() => completeActivity(index)}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
-                  >
-                    <FaCheckCircle className="mr-1" />
-                    Complete
-                  </button>
-                ) : (
-                  <span
-                    className={`text-sm ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    Pending
-                  </span>
-                )}
+                <div className="mt-2 sm:mt-0">
+                  {currentSession.completedActivities.includes(index) ? (
+                    <FaTrophy className="text-yellow-500 text-lg" />
+                  ) : index === currentSession.currentActivity ? (
+                    <button
+                      onClick={() => completeActivity(index)}
+                      className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
+                    >
+                      <FaCheckCircle className="mr-1" />
+                      Complete
+                    </button>
+                  ) : (
+                    <span
+                      className={`text-sm ${
+                        isDark ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      Pending
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>

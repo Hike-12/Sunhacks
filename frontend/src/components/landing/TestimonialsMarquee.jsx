@@ -202,7 +202,7 @@ const TestimonialsMarquee = () => {
           </h2>
           <p
             className={`
-            text-xl max-w-2xl mx-auto
+            text-sm sm:text-base md:text-lg max-w-2xl mx-auto
             ${isDark ? "text-[#f8f8f8]/70" : "text-[#080808]/70"}
           `}
           >
