@@ -30,19 +30,12 @@ const corsOptions = {
     "https://studyaid-sunhacks.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
-    "http://localhost:4173"
+    "http://localhost:4173",
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200,
 };
-
 app.use(cors(corsOptions));
-
-// Add explicit OPTIONS handler for preflight
-app.options('*', cors(corsOptions));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
