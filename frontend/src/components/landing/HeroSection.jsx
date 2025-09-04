@@ -48,6 +48,7 @@ function InstallPWAButton() {
   );
 }
 
+
 const HeroSection = () => {
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState("study-flow");
