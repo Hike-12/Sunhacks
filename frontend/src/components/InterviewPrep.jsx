@@ -6,14 +6,14 @@ import RecordRTC from "recordrtc";
 
 // ---- SAMPLE DATA ----
 const sampleJobs = [
-  {
-    id: 1,
-    company_name: "School",
-    job_title: "Mathematics",
-    job_description: "Answer questions related to algebra, geometry, and calculus.",
-    required_skills: ["Problem Solving", "Logical Reasoning", "Numerical Skills"],
-    location: "Classroom",
-  },
+  // {
+  //   id: 1,
+  //   company_name: "School",
+  //   job_title: "Mathematics",
+  //   job_description: "Answer questions related to algebra, geometry, and calculus.",
+  //   required_skills: ["Problem Solving", "Logical Reasoning", "Numerical Skills"],
+  //   location: "Classroom",
+  // },
   {
     id: 2,
     company_name: "School",
@@ -22,22 +22,22 @@ const sampleJobs = [
     required_skills: ["Critical Thinking", "Experimentation", "Observation"],
     location: "Lab",
   },
-  {
-    id: 3,
-    company_name: "School",
-    job_title: "English Literature",
-    job_description: "Analyze poems, stories, and plays.",
-    required_skills: ["Reading", "Interpretation", "Writing"],
-    location: "Library",
-  },
-  {
-    id: 4,
-    company_name: "School",
-    job_title: "History",
-    job_description: "Answer questions about historical events and figures.",
-    required_skills: ["Research", "Memory", "Analysis"],
-    location: "Classroom",
-  },
+  // {
+  //   id: 3,
+  //   company_name: "School",
+  //   job_title: "English Literature",
+  //   job_description: "Analyze poems, stories, and plays.",
+  //   required_skills: ["Reading", "Interpretation", "Writing"],
+  //   location: "Library",
+  // },
+  // {
+  //   id: 4,
+  //   company_name: "School",
+  //   job_title: "History",
+  //   job_description: "Answer questions about historical events and figures.",
+  //   required_skills: ["Research", "Memory", "Analysis"],
+  //   location: "Classroom",
+  // },
 ];
 
 const sampleResume = {
