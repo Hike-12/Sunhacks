@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const { isDark } = useTheme();
 
   useEffect(() => {
     const handler = (e) => {
@@ -26,17 +27,19 @@ function InstallPWAButton() {
 
   return (
     <motion.button
-      whileHover={{ translateY: -2 }}
+      whileHover={{ translateY: -3 }}
       whileTap={{ translateY: 0 }}
-      onClick={handleInstallClick}
       className="w-full sm:w-auto relative inline-flex items-center justify-center transition-transform duration-200 focus:outline-none"
+      onClick={handleInstallClick}
     >
       <span
         className={`relative z-10 block w-full text-center px-12 py-3 text-sm font-medium
         rounded-md tracking-wider
-        bg-white text-[#222052] border border-[#222052]`}
+        ${isDark ? "bg-[#222052] text-white" : "bg-[#222052] text-white"}`}
         style={{
-          boxShadow: "0 6px 18px rgba(34,34,60,0.06)",
+          boxShadow: isDark
+            ? "0 8px 22px rgba(28,24,72,0.55)"
+            : "0 8px 22px rgba(34,34,60,0.12)",
         }}
       >
         Install App
